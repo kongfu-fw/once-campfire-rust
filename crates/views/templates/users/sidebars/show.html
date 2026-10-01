@@ -47,6 +47,10 @@
       {{ h::image_tag(ctx, current_user.avatar_path.as_str(), h::attrs().size(48).aria_hidden().style("view-transition-name: avatar-" ~ current_user.id)) }}
       <span class="for-screen-reader">My Settings</span>
 {% endfilter %}
+{% if ctx.can_administer() %}    {% filter link_to(h::routes::admin_users(), h::attrs().class("btn align-center gap txt-reversed sidebar__tool").aria("label", "User Management")) %}
+      {{ h::image_tag(ctx, "everyone.svg", h::attrs().size(20).aria_hidden().style("view-transition-name: admin-users")) }}
+      <span class="for-screen-reader">User Management</span>
+{% endfilter %}{% endif %}
     {% filter link_to(h::routes::edit_account(), h::attrs().class("btn align-center gap txt-reversed sidebar__tool")) %}
       {{ h::image_tag(ctx, "settings.svg", h::attrs().size(20).aria_hidden().style("view-transition-name: account-settings")) }}
       <span class="for-screen-reader">Account Settings</span>

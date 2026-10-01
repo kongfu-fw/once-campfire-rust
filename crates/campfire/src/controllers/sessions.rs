@@ -32,7 +32,7 @@ pub async fn create(c: &mut Ctx) -> Result {
     concerns::before_actions(c, Before::default().allow_unauthenticated_access()).await?;
     rate_limit(c).await?;
 
-    let email_address = c.param_str("email_address").map(str::to_string);
+    let email_address = c.param_str("email_address").map(|s| s.trim().to_lowercase());
     let password = c.param_str("password").map(str::to_string);
     let user = match (email_address, password) {
         (Some(email_address), Some(password)) => concerns::authenticate_by(c, email_address, password).await?,

@@ -33,7 +33,12 @@ pub async fn create(c: &mut Ctx) -> Result {
     concerns::before_actions(c, Before::default().require_unauthenticated_access()).await?;
     verify_join_code(c).await?;
     let params = user_params(c)?;
-    let email_address = params.get("email_address").and_then(|p| p.to_s());
+    let email_address = params.get("email_address").and_then(|p| p.to_s()).map(|e| e.trim().to_lowercase());
+    if let Some(ref email) = email_address {
+        if !campfire_db::validate_username(email) {
+            return Err(Error::BadRequest("Username must be 1-64 alphanumeric characters (letters, numbers, _, -) or a valid email".into()));
+        }
+    }
     let attributes = NewUser {
         // users.name is NOT NULL: a missing name fails the insert, as in Rails.
         name: params
@@ -111,13 +116,18 @@ pub async fn find_user(c: &Ctx, key: &str) -> Result<User> {
 
 /// `head :not_found if Current.account.join_code != params[:join_code]`
 async fn verify_join_code(c: &mut Ctx) -> Result<Account> {
-    let account = c
+    let (account, allow_invites) = c
         .app()
-        .read(Account::first)
-        .await?
+        .read(|conn| {
+            let account = Account::first(conn)?;
+            let allow = campfire_db::CustomSettings::is_invite_enabled(conn)?;
+            Ok((account, allow))
+        })
+        .await?;
+    let account = account
         // `Current.account.join_code` on nil raises NoMethodError.
         .ok_or_else(|| Error::internal(anyhow::anyhow!("undefined method 'join_code' for nil")))?;
-    if c.param_str("join_code") != Some(account.join_code.as_str()) {
+    if !allow_invites || c.param_str("join_code") != Some(account.join_code.as_str()) {
         return halt(c.head(StatusCode::NOT_FOUND));
     }
     Ok(account)

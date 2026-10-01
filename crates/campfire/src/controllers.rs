@@ -43,6 +43,7 @@ pub mod sessions;
 pub mod unfurl_links;
 pub mod users;
 pub mod welcome;
+pub mod admin;
 
 /// Anything that can serve a route: every `async fn(&mut Ctx) -> Result` qualifies.
 pub trait Action: Send + Sync + 'static {
@@ -310,6 +311,15 @@ static ROUTES: LazyLock<Vec<Route>> = LazyLock::new(|| {
         get("/rails/active_storage/disk/:encoded_key/*filename(.:format)", "active_storage/disk#show", active_storage::disk_show),
         put("/rails/active_storage/disk/:encoded_token(.:format)", "active_storage/disk#update", active_storage::disk_update),
         post("/rails/active_storage/direct_uploads(.:format)", "active_storage/direct_uploads#create", active_storage::direct_uploads_create),
+        // --- Fork Extensions: User Management & Admin Settings ---
+        get("/admin/users(.:format)", "admin/users#index", admin::index),
+        post("/admin/users(.:format)", "admin/users#create", admin::create_user),
+        post("/admin/settings/invites(.:format)", "admin/settings#invites", admin::toggle_invites),
+        post("/admin/users/:id/role(.:format)", "admin/users#role", admin::update_role),
+        post("/admin/users/:id/reset_password(.:format)", "admin/users#reset_password", admin::reset_password),
+        post("/admin/users/:id/lock(.:format)", "admin/users#lock", admin::lock_user),
+        post("/admin/users/:id/unlock(.:format)", "admin/users#unlock", admin::unlock_user),
+        delete("/admin/users/:id(.:format)", "admin/users#destroy", admin::delete_user),
     ]
 });
 

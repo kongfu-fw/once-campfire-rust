@@ -36,6 +36,7 @@ pub struct Edit<'a> {
     pub members: Vec<UserSummary>,
     /// `@page.next_param` unless `@page.last?`.
     pub next_page: Option<String>,
+    pub allow_invites: bool,
 }
 
 impl Edit<'_> {

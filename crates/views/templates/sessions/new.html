@@ -13,7 +13,7 @@
         <div class="flex align-center gap">
           {{ h::translation_button(ctx, "email_address") }}
           <label class="flex align-center gap input input--actor txt-large">
-            {{ form.email_field("email_address", None, h::attrs().required(true).class("input").autofocus().autocomplete("username").placeholder("Enter your email address").attr_opt("value", email_address.as_deref())) }}
+            {{ form.text_field("email_address", None, h::attrs().required(true).class("input").autofocus().autocomplete("username").placeholder("Enter your username or email").attr_opt("value", email_address.as_deref())) }}
             {{ h::image_tag(ctx, "email.svg", h::attrs().aria_hidden().size(24).class("colorize--black")) }}
           </label>
         </div>

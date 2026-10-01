@@ -48,6 +48,7 @@ pub const ADDITIONS: &[&str] = &[
     // with only `index_messages_on_room_id` every room page sorted the room's whole history:
     // 60 ms at 236k messages, against 0.02 ms with this index.
     r#"CREATE INDEX IF NOT EXISTS "index_messages_on_room_id_and_created_at" ON "messages" ("room_id", "created_at")"#,
+    r#"CREATE TABLE IF NOT EXISTS "custom_settings" ("key" VARCHAR NOT NULL PRIMARY KEY, "value" TEXT NOT NULL)"#,
 ];
 
 /// `timeout: 5000` in `config/database.yml`.
