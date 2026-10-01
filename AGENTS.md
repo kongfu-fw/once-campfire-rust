@@ -67,3 +67,13 @@ faster or better.
 `parity/` builds the reference image as `campfire-reference` from `reference/Dockerfile` and runs it
 in production mode with a fixed `SECRET_KEY_BASE` (see `parity/.env.reference`) so that golden
 vectors, seeds and screenshots are reproducible. Those keys are for tests only.
+
+## Docker and development workflow
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for full development notes.
+- **Do NOT push images to Docker Hub during routine development.** Only build and test locally (`docker compose up -d`). Push images to Docker Hub only when merging into `main` or upon explicit user request.
+- **Image repository**: `dogming/once-campfire-rust`. Tags: `latest`, version, date (e.g. `20261001`).
+- **Local port**: default `3000:80` (port 8080 may conflict with other local services).
+- **Line endings**: keep `core.autocrlf=false` in both repo and `reference/` so asset hashes remain accurate.
+- **Frontend changes**: place in `crates/assets/overrides/` and record in `crates/assets/OVERRIDES.md`. Do not edit `reference/`.
+- **Changelog**: document user-facing additions and changes in `CHANGELOG.md`.
