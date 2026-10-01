@@ -1,0 +1,23 @@
+services:
+  campfire:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: "0.1.0"
+        GIT_REVISION: "4419b5f"
+    image: dogming/once-campfire-rust:latest
+    container_name: campfire_rust
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - RAILS_ENV=production
+      - DISABLE_SSL=1
+      - SECRET_KEY_BASE=dummy_key_base_for_dev_mode_only_123
+    volumes:
+      - campfire_storage:/rails/storage
+
+volumes:
+  campfire_storage:
+    name: campfire_rust_storage
