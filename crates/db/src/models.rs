@@ -15,11 +15,13 @@ pub mod session;
 pub mod sound;
 pub mod user;
 pub mod webhook;
+pub mod custom_settings;
 
 pub use account::{Account, AccountSettings};
 pub use active_storage::{Attachment, Blob};
 pub use ban::Ban;
 pub use boost::Boost;
+pub use custom_settings::{CustomSettings, validate_username};
 pub use first_run::FirstRun;
 pub use membership::{Involvement, Membership};
 pub use message::{ContentType, Message, NewMessage};

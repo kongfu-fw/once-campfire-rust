@@ -72,11 +72,10 @@
     <h1 class="flex-item-grow txt-x-large">{{ ctx.account.name }}</h1>
 {% endif %}
   <div class="margin-block pad-inline pad-block-start fill-shade border-radius">
-    {% include "accounts/_invite.html" %}
+{% if allow_invites %}    {% include "accounts/_invite.html" %}
 
     <hr class="margin-block separator full-width" style="--border-style: solid">
-
-    <menu class="flex flex-column gap margin-none pad">
+{% endif %}    <menu class="flex flex-column gap margin-none pad">
       <turbo-frame id="account_users">
         {% for user in administrators %}{% include "accounts/users/_user.html" %}{% endfor %}
 {% if !administrators.is_empty() && !members.is_empty() %}          <hr class="separator full-width" style="--border-style: solid">

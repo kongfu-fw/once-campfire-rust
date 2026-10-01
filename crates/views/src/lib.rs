@@ -4,6 +4,7 @@
 //! as sanitized HTML. Every template renders with the per-request [`ViewContext`] below.
 
 pub mod accounts;
+pub mod admin;
 pub mod autocompletable;
 pub mod first_runs;
 pub mod fragment_cache;

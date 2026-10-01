@@ -53,7 +53,7 @@
         {{ h::translation_button(ctx, "email_address") }}
 
         <label class="flex align-center gap flex-item-grow input input--actor">
-          {{ form.email_field("email_address", None, h::attrs().class("input txt-large").attr_opt("value", user.email_address.as_deref()).autocomplete("username").placeholder("Enter your email address").required(false)) }}
+          {{ form.text_field("email_address", None, h::attrs().class("input txt-large").attr_opt("value", user.email_address.as_deref()).autocomplete("username").placeholder("Enter your username or email").required(false)) }}
           {{ h::image_tag(ctx, "email.svg", h::attrs().aria_hidden().size(24).class("colorize--black")) }}
         </label>
       </div>

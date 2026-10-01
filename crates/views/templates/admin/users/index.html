@@ -1,0 +1,219 @@
+{% extends "layouts/application.html" %}
+{%- block head %}{% endblock %}
+
+{% block nav %}
+  <div class="flex-item-justify-start">
+    {{ h::link_back(ctx) }}
+  </div>
+{% endblock %}
+
+{% block content %}
+<section class="panel panel--wide flex flex-column position-relative" style="max-width: 860px; margin: 0 auto; width: 100%;">
+  <div class="flex align-center justify-between gap pad-block-half" style="border-bottom: 2px solid var(--border-color, #e5e7eb);">
+    <div class="flex align-center gap">
+      {{ h::image_tag(ctx, "everyone.svg", h::attrs().size(28).aria_hidden().class("colorize--black")) }}
+      <h1 class="margin-none txt-x-large">人员与邀请管理</h1>
+    </div>
+    <span class="txt-small txt-subtle">共 {{ users.len() }} 位成员</span>
+  </div>
+
+  <!-- 1. 邀请链接设置卡片 -->
+  <div class="margin-block pad fill-shade border-radius flex flex-column gap">
+    <div class="flex align-center justify-between gap">
+      <div class="flex align-center gap">
+        {{ h::image_tag(ctx, "person-add.svg", h::attrs().size(22).aria_hidden().class("colorize--black")) }}
+        <strong class="txt-medium">邀请链接状态</strong>
+      </div>
+      <div>
+        {% let toggle_form = h::form_with(h::routes::admin_toggle_invites()).method("post") %}
+        {% filter form_with(toggle_form) %}
+          {% if allow_invites %}
+            <button type="submit" class="btn btn--negative txt-small" data-turbo-confirm="确定要关闭邀请链接吗？关闭后新用户将无法通过链接注册。">
+              关闭邀请链接
+            </button>
+          {% else %}
+            <button type="submit" class="btn btn--reversed txt-small">
+              开启邀请链接
+            </button>
+          {% endif %}
+        {% endfilter %}
+      </div>
+    </div>
+
+    {% if allow_invites %}
+      {% let url = ctx.url(h::routes::join(join_code.clone()).as_str()) %}
+      <div class="flex flex-column gap" style="--row-gap: 0.5em">
+        <span class="flex align-center gap input input--actor fill-white">
+          {{ h::image_tag(ctx, "link.svg", h::attrs().aria_hidden().size(20).class("colorize--black")) }}
+          <input type="text" class="input" id="admin_invite_url" value="{{ url }}" readonly>
+        </span>
+        <div class="flex align-center gap flex-wrap">
+          {% filter button_to_copy_to_clipboard(url) %}
+            {{ h::image_tag(ctx, "copy-paste.svg", h::attrs().aria_hidden().size(18).class("colorize--black")) }}
+            <span class="txt-small">复制链接</span>
+          {% endfilter %}
+
+          {% filter link_to_zoom_qr_code(url) %}
+            {{ h::image_tag(ctx, "qr-code.svg", h::attrs().aria_hidden().size(18).class("colorize--black")) }}
+            <span class="txt-small">二维码</span>
+          {% endfilter %}
+
+          {% filter button_to(h::routes::account_join_code(), h::attrs().class("btn btn--regenerate txt-small")) %}
+            {{ h::image_tag(ctx, "refresh.svg", h::attrs().aria_hidden().size(18).class("colorize--black")) }}
+            <span class="txt-small">刷新链接</span>
+          {% endfilter %}
+        </div>
+      </div>
+    {% else %}
+      <div class="pad-block-half txt-subtle txt-small" style="color: #b91c1c;">
+        ⚠️ 邀请通道当前已关闭。非系统用户无法访问注册页面或通过链接加入。
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- 2. 添加新成员卡片 -->
+  <details class="margin-block pad fill-white border-radius" style="border: 1px solid var(--border-color, #e5e7eb);">
+    <summary class="btn btn--reversed txt-medium center-block" style="cursor: pointer; padding: 0.6em 1.5em; text-align: center;">
+      + 添加新成员
+    </summary>
+    <div class="pad-block-start">
+      {% let create_form = h::form_with(h::routes::admin_users()).method("post").class("flex flex-column gap") %}
+      {% filter form_with(create_form) %}
+        <div class="flex gap flex-wrap">
+          <label class="flex flex-column gap flex-item-grow" style="min-width: 200px; --row-gap: 0.3em;">
+            <strong class="txt-small">登录用户名（支持英文字符、数字、_、- 或邮箱）*</strong>
+            <input type="text" name="email_address" required autocomplete="off" placeholder="例如: jack_01 或 user@domain.com" class="input txt-medium">
+          </label>
+          <label class="flex flex-column gap flex-item-grow" style="min-width: 200px; --row-gap: 0.3em;">
+            <strong class="txt-small">显示昵称 / 姓名 *</strong>
+            <input type="text" name="name" required placeholder="例如: Jack" class="input txt-medium">
+          </label>
+        </div>
+
+        <div class="flex gap flex-wrap">
+          <label class="flex flex-column gap flex-item-grow" style="min-width: 200px; --row-gap: 0.3em;">
+            <strong class="txt-small">初始密码 *</strong>
+            <input type="password" name="password" required autocomplete="new-password" placeholder="设置初始密码" class="input txt-medium" maxlength="72">
+          </label>
+          <label class="flex flex-column gap flex-item-grow" style="min-width: 200px; --row-gap: 0.3em;">
+            <strong class="txt-small">权限角色</strong>
+            <select name="role" class="input txt-medium" style="height: 42px;">
+              <option value="member" selected>普通成员 (Member)</option>
+              <option value="administrator">管理员 (Administrator)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="flex justify-end gap pad-block-half">
+          <button type="submit" class="btn btn--reversed txt-medium" style="min-width: 120px;">
+            保存并创建
+          </button>
+        </div>
+      {% endfilter %}
+    </div>
+  </details>
+
+  <!-- 3. 人员列表 -->
+  <div class="margin-block fill-shade border-radius pad">
+    <h2 class="txt-large margin-block-none pad-block-half" style="border-bottom: 1px solid var(--border-color, #e5e7eb);">
+      成员列表
+    </h2>
+
+    <div class="flex flex-column gap pad-block-start">
+      {% for user in users %}
+        <div class="flex align-center justify-between gap pad fill-white border-radius" style="border: 1px solid var(--border-color, #e5e7eb); flex-wrap: wrap;">
+          <!-- 用户基本信息与状态标签 -->
+          <div class="flex align-center gap flex-wrap" style="flex: 1 1 auto; min-width: 260px;">
+            <!-- 用户基本信息 -->
+            <div class="flex align-center gap" style="min-width: 200px;">
+              <figure class="avatar flex-item-no-shrink" style="--avatar-size: 3.5ch; margin: 0;">
+                <img src="{{ user.avatar_url }}" alt="{{ user.name }}" class="avatar" loading="lazy" style="width: 3.5ch; height: 3.5ch; border-radius: 50%;">
+              </figure>
+              <div class="flex flex-column" style="line-height: 1.3;">
+                <div class="flex align-center gap">
+                  <strong>{{ user.name }}</strong>
+                  {% if user.is_current_user %}
+                    <span class="txt-small" style="background: #e0f2fe; color: #0369a1; padding: 1px 6px; border-radius: 8px; font-size: 0.75rem;">我</span>
+                  {% endif %}
+                </div>
+                <span class="txt-small txt-subtle">{{ user.email_address }}</span>
+              </div>
+            </div>
+
+            <!-- 角色与状态标签 -->
+            <div class="flex align-center gap">
+              {% if user.is_admin %}
+                <span class="txt-small" style="background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: 0.75rem;">管理员</span>
+              {% else %}
+                <span class="txt-small" style="background: #f3f4f6; color: #4b5563; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">普通成员</span>
+              {% endif %}
+
+              {% if user.is_banned %}
+                <span class="txt-small" style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: 0.75rem;">已锁定</span>
+              {% else %}
+                <span class="txt-small" style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">正常</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- 操作按钮组 (从右向左对齐/右对齐) -->
+          <div class="flex align-center gap flex-wrap" style="margin-left: auto; justify-content: flex-end;">
+            <!-- 切换角色 -->
+            {% if !user.is_current_user %}
+              {% let role_form = h::form_with(h::routes::admin_user_role(user.id)).method("post") %}
+              {% filter form_with(role_form) %}
+                <input type="hidden" name="role" value="{% if user.is_admin %}member{% else %}administrator{% endif %}">
+                <button type="submit" class="btn txt-small" title="{% if user.is_admin %}降级为普通成员{% else %}设为管理员{% endif %}">
+                  {{ h::image_tag(ctx, "crown.svg", h::attrs().size(16).aria_hidden()) }}
+                  <span>{% if user.is_admin %}降为成员{% else %}设为管理{% endif %}</span>
+                </button>
+              {% endfilter %}
+            {% endif %}
+
+            <!-- 重置密码 (折叠表单) -->
+            <details class="position-relative" style="display: inline-block;">
+              <summary class="btn txt-small" style="cursor: pointer;">
+                {{ h::image_tag(ctx, "key.svg", h::attrs().size(16).aria_hidden()) }}
+                <span>改密</span>
+              </summary>
+              <div class="pad fill-white border-radius position-absolute" style="top: 100%; right: 0; z-index: 50; width: 220px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ddd;">
+                {% let reset_form = h::form_with(h::routes::admin_reset_password(user.id)).method("post").class("flex flex-column gap") %}
+                {% filter form_with(reset_form) %}
+                  <strong class="txt-small">重置密码: {{ user.name }}</strong>
+                  <input type="password" name="new_password" required placeholder="输入新密码" class="input txt-small" autocomplete="new-password">
+                  <div class="flex justify-end gap">
+                    <button type="submit" class="btn btn--reversed txt-small">确认修改</button>
+                  </div>
+                {% endfilter %}
+              </div>
+            </details>
+
+            <!-- 锁定 / 解锁 -->
+            {% if !user.is_current_user %}
+              {% if user.is_banned %}
+                {% filter button_to(h::routes::admin_unlock_user(user.id), h::attrs().method("post").class("btn txt-small")) %}
+                  {{ h::image_tag(ctx, "check.svg", h::attrs().size(16).aria_hidden()) }}
+                  <span>解锁</span>
+                {% endfilter %}
+              {% else %}
+                {% filter button_to(h::routes::admin_lock_user(user.id), h::attrs().method("post").class("btn btn--negative txt-small").data("turbo_confirm", "确定要锁定该用户吗？锁定后将注销其所有登录状态并阻止登录，但保留其历史聊天消息。")) %}
+                  {{ h::image_tag(ctx, "lock.svg", h::attrs().size(16).aria_hidden()) }}
+                  <span>锁定</span>
+                {% endfilter %}
+              {% endif %}
+            {% endif %}
+
+            <!-- 删除 (软停用) -->
+            {% if !user.is_current_user %}
+              {% filter button_to(h::routes::admin_delete_user(user.id), h::attrs().method("delete").class("btn btn--negative txt-small").data("turbo_confirm", "确定要删除该用户吗？此操作将停用该账号并从房间中移出，历史消息仍保留。")) %}
+                {{ h::image_tag(ctx, "minus.svg", h::attrs().size(16).aria_hidden()) }}
+                <span>删除</span>
+              {% endfilter %}
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

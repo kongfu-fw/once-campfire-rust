@@ -34,6 +34,14 @@ path!(account_logo, "/account/logo");
 path!(account_custom_styles, "/account/custom_styles");
 path!(edit_account_custom_styles, "/account/custom_styles/edit");
 
+path!(admin_users, "/admin/users");
+path!(admin_user_role(id), "/admin/users/{id}/role");
+path!(admin_reset_password(id), "/admin/users/{id}/reset_password");
+path!(admin_lock_user(id), "/admin/users/{id}/lock");
+path!(admin_unlock_user(id), "/admin/users/{id}/unlock");
+path!(admin_delete_user(id), "/admin/users/{id}");
+path!(admin_toggle_invites, "/admin/settings/invites");
+
 path!(join(join_code), "/join/{join_code}");
 path!(qr_code(id), "/qr_code/{id}");
 

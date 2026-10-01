@@ -35,6 +35,7 @@ pub async fn edit(c: &mut Ctx) -> Result {
         users.iter().map(|user| presenters::user_summary(&secrets, user)).partition(|user| user.administrator());
     let next_page = (!page.is_last()).then(|| page.next_param().to_string());
     let restrict_room_creation_to_administrators = account.settings().restrict_room_creation_to_administrators();
+    let allow_invites = c.app().read(campfire_db::CustomSettings::is_invite_enabled).await?;
     framed_page!(c, StatusCode::OK, |ctx| accounts::Edit {
         ctx,
         account_id: account.id,
@@ -43,6 +44,7 @@ pub async fn edit(c: &mut Ctx) -> Result {
         administrators: administrators.clone(),
         members: members.clone(),
         next_page: next_page.clone(),
+        allow_invites,
     })
     .await
 }
