@@ -10,51 +10,15 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - name: Deploy container with Docker Compose
         run: |
           DEPLOY_DIR="${HOME}/test_campfire"
           mkdir -p "${DEPLOY_DIR}"
+          cp deploy/test-campfire/docker-compose.yml "${DEPLOY_DIR}/"
+          cp deploy/test-campfire/.env "${DEPLOY_DIR}/"
           cd "${DEPLOY_DIR}"
-
-          cat << 'EOF' > .env
-# Campfire 环境变量配置
-# =====================
-
-# Rails 密钥 (自动生成)
-SECRET_KEY_BASE=300b090bf0e7fa9eb8a026fa80acc0d1fcc9fb7f7005edd1168a0f397f922cceacd0c0895df4a4b138e619a5ebee0fd20d239f33e126e4a3f0ff3b7da0a3c900
-
-# SSL 配置
-# 如果你有域名并且需要自动 SSL，请取消注释并填写域名：
-# SSL_DOMAIN=chat.example.com
-# 如果通过反向代理（如 Nginx/Caddy）处理 SSL，保留 DISABLE_SSL=true
-DISABLE_SSL=true
-
-# Web Push 通知 (VAPID 密钥对，自动生成)
-VAPID_PRIVATE_KEY=aE6D7Alv7YT6dYvEphJ1yMTyGdt44PqtdEwTOhpNj34=
-VAPID_PUBLIC_KEY=BIu4Jz_z6ouQ0ey3ct7Lc_ssKuqFI24HU4mGT6jzsJJdbKOUzmnjxVZwXL122-6Ddp20B-JvONNzQf9Joxpd_Xk=
-
-# Sentry 错误监控 (可选)
-# SENTRY_DSN=
-EOF
-
-          cat << 'EOF' > docker-compose.yml
-services:
-  test_campfire:
-    image: dogming/once-campfire:latest
-    container_name: test_campfire
-    restart: unless-stopped
-    ports:
-      - "3002:80"
-    volumes:
-      - test_campfire_storage:/rails/storage
-    env_file:
-      - .env
-    environment:
-      - DISABLE_SSL=true
-
-volumes:
-  test_campfire_storage:
-EOF
-
           docker compose pull
           docker compose up -d --remove-orphans
