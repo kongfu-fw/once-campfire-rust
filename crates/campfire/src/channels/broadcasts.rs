@@ -137,6 +137,19 @@ impl Broadcasts {
         self.to(&Self::room_messages(room), Action::Remove, &dom_id("boost", boost.id, None), None, &[]);
     }
 
+    // --- Fork Extension: Pinned Messages ---
+
+    /// Broadcast pinned message update to room messages channel.
+    pub fn pinned_message_update(&self, room: &Room, html: &str) {
+        self.to(&Self::room_messages(room), Action::Replace, "room_pinned_message", Some(html), &[]);
+    }
+
+    /// Broadcast pinned message removal to room messages channel.
+    pub fn pinned_message_remove(&self, room: &Room) {
+        let empty = format!(r#"<div id="room_pinned_message" class="pinned-message-container" data-room-id="{}"></div>"#, room.id);
+        self.to(&Self::room_messages(room), Action::Replace, "room_pinned_message", Some(&empty), &[]);
+    }
+
     // The sidebar's room lists (users/sidebars/show.html.erb streams from `:rooms` and
     // `[Current.user, :rooms]`).
 

@@ -12,6 +12,8 @@ pub mod directs;
 pub mod involvements;
 pub mod opens;
 pub mod refreshes;
+// --- Fork Extension: Pinned Messages ---
+pub mod pins;
 
 use askama::Template;
 use campfire_db::{Account, Message, Room, RoomType, User};
@@ -197,9 +199,18 @@ async fn render_show(c: &mut Ctx, room: Room) -> Result {
                 Some(message) if message.room_id == room.id => Message::page_around(conn, room.id, &message)?,
                 _ => Message::last_page(conn, room.id)?,
             };
-            let presenter = Presenter::new(conn, &app, request_host);
+            let presenter = Presenter::new(conn, &app, request_host.clone());
             let original = Room::original(conn)?.is_some_and(|original| original.id == room.id);
             let room_gid = crate::channels::room_gid(&room).to_param();
+
+            // --- Fork Extension: Pinned Message ---
+            let pinned_message = if room.room_type != RoomType::Direct {
+                campfire_db::PinnedMessage::find_for_room(conn, room.id)?
+                    .and_then(|pinned| pins::build_pinned_view(conn, &app, request_host, &pinned).ok().flatten())
+            } else {
+                None
+            };
+
             Ok(campfire_views::rooms::ShowView {
                 room: presenter.room_view(&room, &user)?,
                 updated_at: room.updated_at.jiff(),
@@ -209,6 +220,7 @@ async fn render_show(c: &mut Ctx, room: Room) -> Result {
                 invitation: original && campfire_db::CustomSettings::is_invite_enabled(conn)? && !Message::paged(conn, room.id)?,
                 join_code: Account::first(conn)?.map(|account| account.join_code).unwrap_or_default(),
                 messages_stream_name: rails_compat::turbo::signed_stream_name(&app.secrets, &[&room_gid, "messages"]),
+                pinned_message,
             })
         })
         .await?;

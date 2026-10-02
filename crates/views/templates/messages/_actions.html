@@ -41,6 +41,13 @@
 </button>
         <a class="btn message__action-btn center full-width message__edit-btn" data-turbo-frame="{{ message.dom_id("edit") }}" title="Edit" aria-label="Edit" href="{{ message.edit_path() }}">
           <img class="colorize--black" aria-hidden="true" src="{{ ctx.asset("pencil.svg") }}" width="20" height="20" />
-</a>      </div>
+        </a>
+        <form class="message__pin-btn center full-width" action="{{ campfire_routes::room_pin(message.room_id) }}" method="post" data-action="popup#close" data-turbo="true">
+          <input type="hidden" name="message_id" value="{{ message.id }}" />
+          <button type="submit" class="btn message__action-btn center full-width" title="Pin message" aria-label="Pin message">
+            <img class="colorize--black" aria-hidden="true" src="{{ ctx.asset("pin.svg") }}" width="20" height="20" />
+          </button>
+        </form>
+      </div>
     </div>
 </details></div>

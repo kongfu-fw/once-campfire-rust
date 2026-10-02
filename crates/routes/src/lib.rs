@@ -76,6 +76,8 @@ path!(room_refresh(room_id), "/rooms/{room_id}/refresh");
 path!(room_settings(room_id), "/rooms/{room_id}/settings");
 path!(room_involvement(room_id), "/rooms/{room_id}/involvement");
 path!(room_at_message(room_id, message_id), "/rooms/{room_id}/@{message_id}");
+// --- Fork Extension: Pinned Messages ---
+path!(room_pin(room_id), "/rooms/{room_id}/pin");
 
 path!(rooms_opens, "/rooms/opens");
 path!(new_rooms_open, "/rooms/opens/new");

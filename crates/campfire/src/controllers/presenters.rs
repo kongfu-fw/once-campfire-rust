@@ -297,8 +297,8 @@ impl<'a> Presenter<'a> {
         let filename_str = blob.filename.to_string();
         let is_voice = blob.is_audio() && filename_str.starts_with("voice-message");
         let preview = if is_voice {
-            let duration = parse_voice_duration(&filename_str)
-                .or_else(|| blob.metadata.get("duration").and_then(campfire_storage::Json::as_f64));
+            let duration =
+                parse_voice_duration(&filename_str).or_else(|| blob.metadata.get("duration").and_then(campfire_storage::Json::as_f64));
             AttachmentPreview::VoiceMessage { duration }
         } else if blob.is_previewable() || blob.is_variable() {
             if blob.is_video() {
