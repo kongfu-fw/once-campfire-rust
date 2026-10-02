@@ -1,10 +1,10 @@
 //! Key-value store for app settings added by fork extensions.
 //! Stored in the `custom_settings` table to avoid conflicts with upstream schema.
 
-use rusqlite::{Connection, OptionalExtension, params};
 use crate::database::Tx;
 use crate::error::Result;
 use crate::sql::CachedStatements;
+use rusqlite::{Connection, OptionalExtension, params};
 
 pub const KEY_ALLOW_INVITES: &str = "allow_invites";
 
@@ -12,13 +12,8 @@ pub struct CustomSettings;
 
 impl CustomSettings {
     pub fn get(conn: &Connection, key: &str) -> Result<Option<String>> {
-        let value: Option<String> = conn
-            .query_row(
-                r#"SELECT "value" FROM "custom_settings" WHERE "key" = ? LIMIT 1"#,
-                [key],
-                |r| r.get(0),
-            )
-            .optional()?;
+        let value: Option<String> =
+            conn.query_row(r#"SELECT "value" FROM "custom_settings" WHERE "key" = ? LIMIT 1"#, [key], |r| r.get(0)).optional()?;
         Ok(value)
     }
 
@@ -79,4 +74,3 @@ pub fn validate_username(input: &str) -> bool {
         s.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
     }
 }
-

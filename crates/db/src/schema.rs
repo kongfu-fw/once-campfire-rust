@@ -49,6 +49,16 @@ pub const ADDITIONS: &[&str] = &[
     // 60 ms at 236k messages, against 0.02 ms with this index.
     r#"CREATE INDEX IF NOT EXISTS "index_messages_on_room_id_and_created_at" ON "messages" ("room_id", "created_at")"#,
     r#"CREATE TABLE IF NOT EXISTS "custom_settings" ("key" VARCHAR NOT NULL PRIMARY KEY, "value" TEXT NOT NULL)"#,
+    // --- Fork Extension: Pinned Messages ---
+    r#"CREATE TABLE IF NOT EXISTS "pinned_messages" (
+        "room_id" INTEGER PRIMARY KEY NOT NULL,
+        "message_id" INTEGER NOT NULL,
+        "pinned_by_id" INTEGER NOT NULL,
+        "pinned_at" DATETIME NOT NULL,
+        FOREIGN KEY ("room_id") REFERENCES "rooms" ("id") ON DELETE CASCADE,
+        FOREIGN KEY ("message_id") REFERENCES "messages" ("id") ON DELETE CASCADE,
+        FOREIGN KEY ("pinned_by_id") REFERENCES "users" ("id") ON DELETE CASCADE
+    )"#,
 ];
 
 /// `timeout: 5000` in `config/database.yml`.

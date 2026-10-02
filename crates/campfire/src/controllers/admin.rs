@@ -26,9 +26,7 @@ pub async fn index(c: &mut Ctx) -> Result {
             let join_code = account.map(|a| a.join_code).unwrap_or_default();
             let allow_invites = CustomSettings::is_invite_enabled(conn)?;
             // Query all active and banned non-bot users
-            let mut stmt = conn.prepare(
-                r#"SELECT * FROM "users" WHERE "status" IN (0, 2) AND "role" != 2 ORDER BY LOWER("name") ASC"#,
-            )?;
+            let mut stmt = conn.prepare(r#"SELECT * FROM "users" WHERE "status" IN (0, 2) AND "role" != 2 ORDER BY LOWER("name") ASC"#)?;
             let rows = stmt.query_map([], User::from_row)?;
             let mut users = Vec::new();
             for r in rows {
@@ -52,13 +50,7 @@ pub async fn index(c: &mut Ctx) -> Result {
         })
         .collect();
 
-    framed_page!(c, StatusCode::OK, |ctx| UsersIndex {
-        ctx,
-        join_code: join_code.clone(),
-        allow_invites,
-        users: user_items.clone(),
-    })
-    .await
+    framed_page!(c, StatusCode::OK, |ctx| UsersIndex { ctx, join_code: join_code.clone(), allow_invites, users: user_items.clone() }).await
 }
 
 /// `POST /admin/settings/invites`
@@ -123,13 +115,7 @@ pub async fn create_user(c: &mut Ctx) -> Result {
 
     let digest = concerns::password_digest(c, Some(password)).await?;
 
-    let attributes = NewUser {
-        name,
-        email_address: Some(normalized_username),
-        password_digest: digest,
-        role,
-        ..NewUser::default()
-    };
+    let attributes = NewUser { name, email_address: Some(normalized_username), password_digest: digest, role, ..NewUser::default() };
 
     c.app()
         .write(move |tx| {
@@ -174,15 +160,13 @@ pub async fn reset_password(c: &mut Ctx) -> Result {
     concerns::ensure_can_administer(c)?;
 
     let target_id = target_user_id(c)?;
-    let new_password = c.params.get("new_password")
-        .or_else(|| c.params.get("password"))
-        .and_then(|p| p.to_s())
-        .unwrap_or_default();
+    let new_password = c.params.get("new_password").or_else(|| c.params.get("password")).and_then(|p| p.to_s()).unwrap_or_default();
     if new_password.is_empty() {
         return Err(Error::BadRequest("Password cannot be blank".into()));
     }
 
-    let digest = concerns::password_digest(c, Some(new_password)).await?
+    let digest = concerns::password_digest(c, Some(new_password))
+        .await?
         .ok_or_else(|| Error::internal(anyhow::anyhow!("Password hashing failed")))?;
 
     c.app()

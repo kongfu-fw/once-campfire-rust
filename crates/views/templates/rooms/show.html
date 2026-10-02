@@ -11,6 +11,9 @@
 {%- block sidebar %}{{ h::sidebar_turbo_frame_tag(Some(h::routes::user_sidebar().as_str()), "") }}{% endblock %}
 
 {%- block content %}
+{%- let pinned = show.pinned_message.as_ref() %}
+{%- let room_id = show.room.id %}
+{% include "rooms/show/_pinned_message.html" %}
 <div id="message-area" class="message-area" contents="true" data-controller="messages presence drop-target" data-action="turbo:before-stream-render@document-&gt;messages#beforeStreamRender keydown.up@document-&gt;messages#editMyLastMessage dragenter-&gt;drop-target#dragenter dragover-&gt;drop-target#dragover drop-&gt;drop-target#drop visibilitychange@document-&gt;presence#visibilityChanged" data-messages-first-of-day-class="message--first-of-day" data-messages-formatted-class="message--formatted" data-messages-me-class="message--me" data-messages-mentioned-class="message--mentioned" data-messages-threaded-class="message--threaded" data-messages-page-url-value="{{ ctx.url(h::routes::room_messages(show.room.id).as_str()) }}">
   {%- let user = &show.user %}
   {% include "messages/_template.html" %}

@@ -161,3 +161,94 @@ fn user_room_scopes() {
     let names: Vec<_> = ordered.iter().map(|(_, r)| r.name.clone()).collect();
     assert_eq!(names[names.len() - 4..], [Some("All Pets".into()), Some("All Talk".into()), Some("Designers".into()), Some("HQ".into())]);
 }
+
+#[test]
+fn pin_message_and_retrieve_and_unpin() {
+    let t = TestDb::new();
+    let room_id = id("designers");
+    let david = id("david");
+    let now = Timestamp::from_jiff(t.clock.now());
+
+    // Post a message in the room
+    let message = t.write(move |tx| {
+        Message::create(
+            tx,
+            crate::NewMessage {
+                room_id,
+                creator_id: david,
+                client_message_id: Some("pin-test-msg".into()),
+                body: Some("Important announcement".into()),
+                ..Default::default()
+            },
+        )
+    });
+
+    // Initially no pinned message
+    assert!(t.read(|c| crate::PinnedMessage::find_for_room(c, room_id)).is_none());
+    assert!(!t.read(|c| crate::PinnedMessage::is_pinned(c, message.id)));
+
+    // Pin the message
+    let pinned = t.write(move |tx| crate::PinnedMessage::pin(tx, room_id, message.id, david, now));
+    assert_eq!(pinned.room_id, room_id);
+    assert_eq!(pinned.message_id, message.id);
+    assert_eq!(pinned.pinned_by_id, david);
+
+    // Verify retrieval
+    let retrieved = t.read(|c| crate::PinnedMessage::find_for_room(c, room_id)).unwrap();
+    assert_eq!(retrieved.message_id, message.id);
+    assert!(t.read(|c| crate::PinnedMessage::is_pinned(c, message.id)));
+
+    // Pinning another message in the same room replaces it
+    let message2 = t.write(move |tx| {
+        Message::create(
+            tx,
+            crate::NewMessage {
+                room_id,
+                creator_id: david,
+                client_message_id: Some("pin-test-msg-2".into()),
+                body: Some("Newer announcement".into()),
+                ..Default::default()
+            },
+        )
+    });
+    t.write(move |tx| crate::PinnedMessage::pin(tx, room_id, message2.id, david, now));
+    let updated = t.read(|c| crate::PinnedMessage::find_for_room(c, room_id)).unwrap();
+    assert_eq!(updated.message_id, message2.id);
+    assert!(!t.read(|c| crate::PinnedMessage::is_pinned(c, message.id)));
+    assert!(t.read(|c| crate::PinnedMessage::is_pinned(c, message2.id)));
+
+    // Unpin
+    let unpinned = t.write(move |tx| crate::PinnedMessage::unpin(tx, room_id));
+    assert!(unpinned);
+    assert!(t.read(|c| crate::PinnedMessage::find_for_room(c, room_id)).is_none());
+    assert!(!t.read(|c| crate::PinnedMessage::is_pinned(c, message2.id)));
+}
+
+#[test]
+fn deleting_message_cascades_pin_removal() {
+    let t = TestDb::new();
+    let room_id = id("designers");
+    let david = id("david");
+    let now = Timestamp::from_jiff(t.clock.now());
+
+    let message = t.write(move |tx| {
+        Message::create(
+            tx,
+            crate::NewMessage {
+                room_id,
+                creator_id: david,
+                client_message_id: Some("pin-cascade-msg".into()),
+                body: Some("Temporary notice".into()),
+                ..Default::default()
+            },
+        )
+    });
+
+    t.write(move |tx| crate::PinnedMessage::pin(tx, room_id, message.id, david, now));
+    assert!(t.read(|c| crate::PinnedMessage::find_for_room(c, room_id)).is_some());
+
+    // Destroy message -> foreign key ON DELETE CASCADE removes pin
+    let to_destroy = message.clone();
+    t.write(move |tx| to_destroy.destroy(tx));
+    assert!(t.read(|c| crate::PinnedMessage::find_for_room(c, room_id)).is_none());
+}

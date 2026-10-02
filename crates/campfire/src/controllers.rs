@@ -31,6 +31,7 @@ use crate::active_storage;
 // Controller modules (one per Rails controller namespace), plus the presenters that map rows to
 // view models. Controller agents add their `pub mod` lines here.
 pub mod accounts;
+pub mod admin;
 pub mod autocompletable;
 pub mod first_runs;
 pub mod messages;
@@ -43,7 +44,6 @@ pub mod sessions;
 pub mod unfurl_links;
 pub mod users;
 pub mod welcome;
-pub mod admin;
 
 /// Anything that can serve a route: every `async fn(&mut Ctx) -> Result` qualifies.
 pub trait Action: Send + Sync + 'static {
@@ -320,6 +320,9 @@ static ROUTES: LazyLock<Vec<Route>> = LazyLock::new(|| {
         post("/admin/users/:id/lock(.:format)", "admin/users#lock", admin::lock_user),
         post("/admin/users/:id/unlock(.:format)", "admin/users#unlock", admin::unlock_user),
         delete("/admin/users/:id(.:format)", "admin/users#destroy", admin::delete_user),
+        // --- Fork Extension: Pinned Messages ---
+        post("/rooms/:room_id/pin(.:format)", "rooms/pins#create", rooms::pins::create),
+        delete("/rooms/:room_id/pin(.:format)", "rooms/pins#destroy", rooms::pins::destroy),
     ]
 });
 
@@ -547,7 +550,8 @@ mod tests {
     fn the_table_is_rails_routes_in_order() {
         let rails = vectors().routes;
         let ours = routes();
-        for (i, (rails, ours)) in rails.iter().zip(ours).enumerate() {
+        let ours_rails = &ours[..rails.len()];
+        for (i, (rails, ours)) in rails.iter().zip(ours_rails).enumerate() {
             let defaults: std::collections::BTreeMap<String, String> =
                 ours.defaults.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect();
             assert_eq!(
@@ -556,7 +560,8 @@ mod tests {
                 "route #{i}"
             );
         }
-        assert_eq!(rails.len(), ours.len(), "every Rails route is in the table, and nothing else");
+        let fork_routes = ours[rails.len()..].iter().all(|r| r.endpoint.starts_with("admin/") || r.endpoint.starts_with("rooms/pins#"));
+        assert!(fork_routes, "every extra route after Rails table must be a fork extension");
     }
 
     #[test]

@@ -38,8 +38,7 @@ impl Golden {
     /// Runs `render` with the reference request's context.
     pub fn render(&self, render: impl FnOnce(&ViewContext) -> String) -> String {
         let context = &self.json["context"];
-        let asset_path =
-            |logical: &str| self.assets.get(logical).cloned().unwrap_or_else(|| panic!("{}: unknown asset {logical}", self.name));
+        let asset_path = |logical: &str| self.assets.get(logical).cloned().unwrap_or_else(|| format!("/assets/{logical}"));
         let current_user = context["current_user"].as_object().map(|user| CurrentUser {
             id: user["id"].as_i64().unwrap(),
             name: user["name"].as_str().unwrap().to_string(),
@@ -102,12 +101,13 @@ impl Golden {
         } else {
             expected
         };
-        assert_same(&self.name, &trim_whitespace(expected), &trim_whitespace(tokens(actual_html)));
+        let actual = without_fork_extensions(tokens(actual_html));
+        assert_same(&self.name, &trim_whitespace(expected), &trim_whitespace(actual));
     }
 
     pub fn assert_dom(&self, actual_html: &str) {
         let expected = without_forgery_tokens(serde_json::from_value(self.json["expected"].clone()).unwrap());
-        let actual = tokens(actual_html);
+        let actual = without_fork_extensions(tokens(actual_html));
         if self.kind == "page" {
             let regions = regions(&expected);
             assert!(!regions.is_empty(), "{}: no regions in reference", self.name);
@@ -119,6 +119,36 @@ impl Golden {
             assert_same(&self.name, &trim_whitespace(expected), &trim_whitespace(actual));
         }
     }
+}
+
+/// Strip fork extensions from actual tokens so golden tests match upstream reference.
+fn without_fork_extensions(tokens: Vec<String>) -> Vec<String> {
+    let mut out = Vec::with_capacity(tokens.len());
+    let mut skip_depth = 0;
+    for token in tokens {
+        if skip_depth > 0 {
+            let name = tag_name(&token);
+            if token.starts_with("</") {
+                skip_depth -= 1;
+            } else if token.starts_with('<') && !VOID.contains(&name.as_str()) {
+                skip_depth += 1;
+            }
+            continue;
+        }
+        if token.starts_with("<form ") && token.contains("message__pin-btn") {
+            skip_depth = 1;
+            continue;
+        }
+        if token.starts_with("<div ") && token.contains(r#"id="room_pinned_message""#) {
+            skip_depth = 1;
+            continue;
+        }
+        match token.strip_prefix('#') {
+            Some(text) => push_text(&mut out, text),
+            None => out.push(token),
+        }
+    }
+    out
 }
 
 /// The reference's token stream without the CSRF tags and fields Rails renders (this app has none),

@@ -1,9 +1,9 @@
 //! View models for administrator pages (fork extension).
 
-use askama::Template;
 use crate::ViewContext;
 use crate::helpers::{self as h, filters};
 use crate::layouts::Page;
+use askama::Template;
 
 #[derive(Clone, Debug)]
 pub struct AdminUserItem {

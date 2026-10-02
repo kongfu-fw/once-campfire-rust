@@ -78,6 +78,42 @@ pub struct ShowView {
     pub join_code: String,
     /// `Turbo::StreamsChannel.signed_stream_name([room, :messages])`.
     pub messages_stream_name: String,
+    /// --- Fork Extension: Pinned Message ---
+    #[serde(default)]
+    pub pinned_message: Option<PinnedMessageView>,
+}
+
+/// A pinned message view for the floating room pin card.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct PinnedMessageView {
+    pub room_id: i64,
+    pub message_id: i64,
+    pub client_message_id: String,
+    pub pinned_by_name: String,
+    pub pinned_at: Timestamp,
+    #[serde(default)]
+    pub summary_emoji: Option<String>,
+    pub summary_text: String,
+    pub message: Box<crate::messages::MessageView>,
+}
+
+impl PinnedMessageView {
+    pub fn pinned_at_iso(&self) -> String {
+        crate::messages::support::iso8601(self.pinned_at)
+    }
+
+    pub fn pinned_at_display(&self) -> String {
+        self.pinned_at.strftime("%Y-%m-%d %H:%M").to_string()
+    }
+}
+
+/// Partial for rendering the pinned message card.
+#[derive(Template)]
+#[template(path = "rooms/show/_pinned_message.html")]
+pub struct PinnedMessagePartial<'a> {
+    pub ctx: &'a ViewContext<'a>,
+    pub pinned: Option<&'a PinnedMessageView>,
+    pub room_id: i64,
 }
 
 /// `rooms/show`.

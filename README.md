@@ -494,6 +494,7 @@ Deliberate:
   levels deep, or with an element carrying more than 400 attributes, as soon as it's assigned: the
   request answers 500 and nothing is saved or changed. The app stores such a body as it came, gives
   it an empty plain text as above, and its page shows it as unrenderable.
+- **Pinned messages.** Public and closed rooms support pinning one message at a time. Administrators can pin or unpin messages. A floating card below the navigation bar shows a 32px compact summary (truncated text or single emoji for media/files) when collapsed, and expands to full message content with metadata and an unpin button. Actions broadcast live via Action Cable Turbo Streams.
 - **Not ported:** the duplicate `session_token` cookie Rails' Active Storage streaming sends; and
   legacy AES-CBC encrypted cookies, since Campfire started on GCM.
 

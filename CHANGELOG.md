@@ -1,95 +1,183 @@
-# 更新日志 (CHANGELOG)
+# CHANGELOG
 
-本文档记录 Campfire 项目的新增功能与版本更新说明。
-
----
-
-## [2026-10-01] 语音消息支持（WhatsApp 录音交互与声纹气泡）
-
-### 功能概述
-为聊天室引入了原生且现代的语音消息功能：
-1. **触发入口**：消息输入框左侧原本静态的气泡图标替换为居中、等比协调的语音图标按钮（圆圈内包含向右辐射的水平声波）。
-2. **录音交互（WhatsApp 风格）**：点击语音图标后，弹出覆盖层面板遮住输入框。支持免提录音、红点计时器（最长 60 秒自动停止）、实时声纹可视化动效、暂停与试听预览、取消（红垃圾桶）以及直接发送。
-3. **消息呈现（声纹气泡）**：消息气泡采用整洁优雅的无尖角胶囊 pill 风格（完美契合 Campfire 亮色/暗色主题），内部由 `voice-soundwave` 播放动效图标、16 段动态 `声纹图` 波形和时长标签（如 `17"`）组成；接收到的语音带有未读红点（播放后自动消除）；播放完毕后自动定位并连续播放聊天流中的下一条未读语音。
-4. **范围隔离与下载权限**：语音消息专为即时收听设计，不设下载按钮；而用户上传的常规音频（MP3/WAV 等）和视频文件继续保留完整的附件下载卡片和下载按钮。
+This document records new features and version updates for the Campfire project.
 
 ---
 
-## [2026-10-01] 人员管理后台、邀请控制开关与免邮箱用户名体系
+## [2026-10-02] Pinned Messages Support
 
-### 功能概述
-为 Campfire 引入了面向团队日常运维的**人员管理面板**、**邀请链接全局开关**，并解除了原本必须为邮箱格式的限制，允许任意英文字符串作为登录用户名。架构设计上采用**增量架构（Additive Architecture）**，所有新增功能以独立新表与独立新文件承载，保障后续无缝合并上游更新。
+### Description
+This release adds pinned message support to public and closed chat rooms.
 
-**最新极简交互优化**：
-1. **页面结构与布局**：标题精炼为「人员」并居中；顶部增加安全留白（`var(--navbar-height)`），确保手机端返回按钮完全不遮挡标题。
-2. **邀请卡片与分享链接**：标题精炼为「邀请链接」，操作采用无文字纯 Switch 开关；下方复制、二维码、刷新等分享动作精炼为纯图标居中排列。
-3. **添加成员交互**：折叠入口采用极简 `+` 圆形按钮；表单保存按钮统一精简为「保存」；增加昵称唯一性校验（禁止重名，重名友好提示）；角色选择升级为与设置统一的「王冠按钮」，点亮即管理员。
-4. **成员列表视觉降噪**：去除冗余的列表大标题，直接呈现成员；移除冗余角色文字 tag 与「正常」tag，仅保留「已锁定」警示 tag；管理员通过点亮王冠直接标识与切换；所有行内操作（王冠权限、钥匙改密、锁/解锁、垃圾桶删除）均采用极简圆形纯图标按钮。
-  - **人员创建**：管理员可在后台直接创建新成员（录入姓名、用户名、初始密码及角色）。
-  - **角色授权与降级**：支持一键将成员升级为管理员，或将管理员降为普通成员。
-  - **密码直接重置**：管理员可直接为指定成员重置密码，并在提交后自动终止该用户的历史登录会话。
-  - **账号安全锁定与解锁**：采用安全锁定策略，清除该用户的所有会话并切断实时 WebSocket 连接，阻止其再次登录，**同时完整保留其所有历史聊天发言与消息记录**，确保团队知识库不受损失；解锁后即刻恢复正常使用。
-  - **账号删除/停用**：支持对废弃账号执行注销与清理。
+### Key Capabilities
+- **Pin Action in Message Menu**:
+  Administrators can click the options menu (`...`) on any message to pin it to the room.
+  The pin action is hidden for regular members.
+  Each room supports one pinned message at a time. Pinning a new message replaces the active pin.
 
-#### 2. 邀请链接全局开关
-- **一键开关控制**：人员管理后台顶部提供直观的「邀请链接」状态开关，默认为开启状态。
-- **全链路入口隐藏与拦截**：
-  - 开关关闭时，团队设置页 (`/account/edit`) 自动隐藏邀请卡片和二维码。
-  - 聊天室顶部自动隐藏新人邀请条幅。
-  - 外部用户访问邀请链接 (`/join/:join_code`) 直接响应 HTTP 404，完全杜绝未经许可的新用户自行注册。
-  - 开关重新打开后，原有邀请链接与界面入口即刻自动恢复。
+- **Floating Pin Banner**:
+  A floating card appears directly below the top navigation bar (`#nav`).
+  The card has a rounded-rectangle shape in both collapsed and expanded states.
+  In collapsed mode, the card shows a compact bar (height 32px) with a white badge icon.
+  Text messages show a truncated text preview.
+  Media and file attachments show a single emoji:
+  - Image: 📷
+  - Video: 🎬
+  - Audio or Voice: 🎵
+  - File or Document: 📁
 
-#### 3. 免邮箱限制的用户名系统
-- **支持英文字符串账号**：
-  - 注册与登录账号字段不再强制校验 `@` 邮箱格式，全面支持 1 至 64 位的英文字符串（允许包含字母、数字、减号 `-`、下划线 `_`），同时完全兼容原有邮箱账号。
-- **大小写不敏感**：
-  - 登录与注册时对用户名进行自动修剪（trim）与小写归一化（lowercase），用户无论输入大写还是小写均可正常识别登录。
+- **Card Expand Details**:
+  Users can click the card to expand or collapse it.
+  When expanded, the compact preview summary hides to keep the focus on the full content.
+  The expanded view shows the full message presentation (rich text, image, playable voice bubble, video, or file).
+  The bottom metadata bar shows `{user}` with left margin spacing.
+  Administrators can click the unpin icon button inside the expanded card to remove the pin.
 
----
-
-### 增量开发与架构设计说明
-- **独立扩展表 (`custom_settings`)**：在 `crates/db/src/schema.rs` 的 `ADDITIONS` 中增量创建，存放自定义配置与扩展状态，完全不碰原生 `accounts` / `users` 表结构。
-- **独立文件承载**：
-  - 管理控制器：`crates/campfire/src/controllers/admin.rs`
-  - 管理视图与模板：`crates/views/src/admin.rs`、`crates/views/templates/admin/users/index.html`
-  - 扩展模型与工具：`crates/db/src/models/custom_settings.rs`
-- **上游文件微创挂钩**：对上游已有代码的触碰仅限极少数必要路由注册与表单属性声明（均控制在 1~2 行），未来拉取上游主干分支更新时可实现近乎零冲突合并。
+- **Real-Time Synchronization**:
+  Pin and unpin actions broadcast through Action Cable Turbo Streams.
+  All connected users see the pinned card update or disappear immediately.
+  When a pinned message is edited or deleted, the pin card updates or removes automatically.
 
 ---
 
-## [2026-10-01] 图片预览手势与鼠标缩放平移功能
+## [2026-10-01] Voice Message Support
 
-### 功能概述
-为聊天消息及附件中的图片预览弹窗（Lightbox）新增了完整的**触摸双指缩放**与**桌面鼠标缩放及拖拽平移**交互支持。用户在查看大图时可以方便地放大查看细节，并自由拖拽浏览。
+### Description
+This release adds a voice message feature to the chat room.
 
----
+### Key Capabilities
+- **Voice Button**:
+  A voice button replaces the static chat icon on the left of the input field.
+  The button shows a circle with horizontal sound waves.
 
-### 操作说明
+- **Audio Record Panel**:
+  When you click the voice button, a panel opens and covers the input field.
+  The panel supports hands-free audio recording.
+  A timer stops the record operation automatically after 60 seconds.
+  The panel shows live sound waves during the audio record.
+  You can pause the audio, listen to a preview, cancel with the trash icon, or send the message.
 
-#### 1. 电脑端（鼠标操作）
-- **滚轮缩放**：
-  - 鼠标悬停在图片上，**向前滚动滚轮**即可放大图片（最大支持 5 倍放大），且以当前鼠标所在点为中心进行聚焦放大。
-  - **向后滚动滚轮**即可缩小图片，最小恢复至 1 倍原始适应大小。
-- **拖拽平移**：
-  - 在图片放大状态下（大于 1 倍），**按住鼠标左键并拖动**即可平移图片浏览各个角落。鼠标光标会自动呈现抓手状态（`grab` / `grabbing`）。
-- **双击切换缩放**：
-  - **双击图片**可在 1 倍默认大小与 2.5 倍放大之间平滑切换。
-- **快速关闭**：
-  - 点击图片外部的半透明背景区域、右上角关闭按钮或按 `ESC` 键即可关闭预览。关闭时自动重置缩放和位置状态。
+- **Voice Message Bubble**:
+  Voice messages use a pill-style bubble for light and dark themes.
+  Each bubble contains a play button, 16 soundwave bars, and a duration label.
+  Unread messages show a red dot indicator.
+  The red dot disappears after playback.
+  When an audio message finishes, the system plays the next unread voice message automatically.
 
-#### 2. 移动端 / 触摸屏（触控手势）
-- **双指捏合缩放 (Pinch-to-Zoom)**：
-  - 使用双指在图片上捏合或张开，即可实时按比例无级缩放图片（1x - 5x）。
-- **单指平移**：
-  - 在图片放大状态下，单指滑动即可平移图片浏览细节。
-- **双击缩放 (Double Tap)**：
-  - 双击图片快速在 1 倍与 2.5 倍之间切换。
-- **轻触背景关闭**：
-  - 点击图片四周的空白背景区域即可关闭预览窗口。
+- **Download Permissions**:
+  Voice messages do not include a download button.
+  Standard audio files (such as MP3 and WAV) and video files keep full download buttons.
 
 ---
 
-### 技术实现细节
-- **无侵入覆盖机制**：遵循项目的 Rust 移植前端规范，通过 `crates/assets/overrides/controllers/lightbox_controller.js` 覆盖原生 Stimulus 控制器，不改动 `reference/` 上游 submodule。
-- **高性能硬件加速**：使用 CSS3 `transform: translate3d(...) scale(...)` 进行硬件加速渲染，拖拽及缩放手势期间禁用 transition 保证 60fps 零延迟跟手体验；双击与重置时启用平滑缓动动画。
-- **视口边界约束**：内置平移边界防出界保护算法，防止图片被过度拖拽移出可视区域。
+## [2026-10-01] User Management, Invite Controls, and Username System
+
+### Description
+This release adds a user management panel, a global invite link switch, and support for standard alphanumeric usernames without email addresses.
+The implementation uses an additive architecture to keep upstream compatibility.
+All new features use dedicated tables and files to prevent merge conflicts with upstream updates.
+
+### User Management Panel
+- **Page Layout**:
+  The title is "Users" and stays in the center.
+  Top spacing prevents navigation buttons on mobile screens from covering the title.
+
+- **Member Management Actions**:
+  - **Create Members**: Administrators can create new accounts with a name, username, password, and role.
+  - **Change Roles**: Administrators can promote a member to administrator or demote an administrator to member.
+  - **Reset Passwords**: Administrators can set a new password for a member.
+    The system terminates all active sessions for that member immediately.
+  - **Lock and Unlock Accounts**: Administrators can lock an account to disconnect active sessions and WebSocket connections.
+    Locked users cannot sign in.
+    The system keeps all chat messages from locked users.
+    Administrators can unlock accounts at any time.
+  - **Delete Accounts**: Administrators can delete unused accounts from the database.
+
+- **User Interface Design**:
+  - The member list displays accounts directly without redundant titles.
+  - Only the "Locked" status badge shows on locked accounts.
+  - A crown icon identifies administrators.
+  - Action buttons (crown, key, lock, and trash) use round icon buttons.
+
+### Invite Link Global Switch
+- **Switch Control**:
+  The user management panel provides a switch for the invite link.
+  The switch is ON by default.
+
+- **Access Restriction**:
+  - When the switch is OFF, the account settings page (`/account/edit`) hides the invite card and QR code.
+  - The chat view hides the new-member invite banner.
+  - When a user opens an invite link (`/join/:join_code`), the server returns HTTP 404.
+  - When an administrator turns the switch ON, the system restores the invite link immediately.
+
+### Username System Without Email Restrictions
+- **Alphanumeric Usernames**:
+  Sign-up and sign-in accept alphanumeric strings between 1 and 64 characters.
+  Allowed characters are letters, numbers, hyphens (`-`), and underscores (`_`).
+  Email addresses remain fully supported.
+
+- **Case Insensitivity**:
+  The system trims and normalizes usernames to lowercase during sign-up and sign-in.
+  Users can type uppercase or lowercase characters to sign in.
+
+### Architectural Details
+- **Custom Settings Table (`custom_settings`)**:
+  The database schema adds a `custom_settings` table in `crates/db/src/schema.rs` under `ADDITIONS`.
+  The original `accounts` and `users` tables remain unchanged.
+
+- **New Dedicated Files**:
+  - Admin controller: `crates/campfire/src/controllers/admin.rs`
+  - Admin views and templates: `crates/views/src/admin.rs` and `crates/views/templates/admin/users/index.html`
+  - Settings models: `crates/db/src/models/custom_settings.rs`
+
+---
+
+## [2026-10-01] Image Preview Gestures and Mouse Controls
+
+### Description
+This release adds touch gestures and mouse controls to the image preview lightbox.
+Users can zoom in to see details and pan images freely.
+
+### Desktop Controls (Mouse)
+- **Wheel Zoom**:
+  1. Move the mouse cursor over the image.
+  2. Rotate the mouse wheel forward to zoom in up to 5x magnification.
+     The zoom focuses on the current cursor position.
+  3. Rotate the mouse wheel backward to zoom out down to 1x scale.
+
+- **Pan**:
+  - When the image scale is larger than 1x, hold the left mouse button and drag to pan.
+  - The cursor changes to grab and grabbing styles.
+
+- **Double-Click Zoom**:
+  - Double-click the image to switch between 1x scale and 2.5x magnification.
+
+- **Close Preview**:
+  - To close the preview, click the dark background, click the close button, or press `ESC`.
+  - The window resets the zoom and pan values on close.
+
+### Mobile Controls (Touch Screen)
+- **Pinch to Zoom**:
+  - Pinch or spread two fingers on the image to adjust magnification between 1x and 5x.
+
+- **One-Finger Pan**:
+  - When the image is larger than 1x, slide one finger to pan the image.
+
+- **Double-Tap Zoom**:
+  - Double-tap the image to switch between 1x scale and 2.5x magnification.
+
+- **Close Preview**:
+  - Tap the dark background outside the image to close the preview window.
+
+### Technical Implementation Details
+- **Asset Override**:
+  The file `crates/assets/overrides/controllers/lightbox_controller.js` overrides the upstream Stimulus controller.
+  This change does not modify the `reference/` git submodule.
+
+- **Hardware Acceleration**:
+  The controller uses CSS3 `transform: translate3d(...) scale(...)` for rendering.
+  Transitions are disabled during drag and zoom actions to keep 60 frames per second response.
+  Transitions are enabled for double-click and reset animations.
+
+- **Viewport Boundary Constraints**:
+  Boundary algorithms prevent the user from moving images outside the visible area.

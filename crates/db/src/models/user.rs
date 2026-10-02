@@ -405,13 +405,9 @@ impl User {
 
     fn deactivated_email_address(&self) -> Option<String> {
         let uuid = sql::uuid();
-        self.email_address.as_ref().map(|e| {
-            if e.contains('@') {
-                e.replace('@', &format!("-deactivated-{uuid}@"))
-            } else {
-                format!("{e}-deactivated-{uuid}")
-            }
-        })
+        self.email_address
+            .as_ref()
+            .map(|e| if e.contains('@') { e.replace('@', &format!("-deactivated-{uuid}@")) } else { format!("{e}-deactivated-{uuid}") })
     }
 
     /// `User::Bannable#ban`
@@ -636,4 +632,3 @@ fn grant_membership_to_open_rooms(tx: &mut Tx<'_>, user_id: i64) -> Result<()> {
     }
     Ok(())
 }
-

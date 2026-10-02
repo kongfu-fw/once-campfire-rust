@@ -15,7 +15,10 @@ path.
 | `controllers/composer_controller.js` | Adds WhatsApp-style voice recording overlay panel, MediaRecorder, live waveform visualization, 60s timer, pause & preview, and voice audio upload |
 | `controllers/sound_controller.js` | Supports voice message playback, soundwave animation, unplayed red dot tracking in localStorage, and sequential auto-next playback |
 | `composer.css` | Styles for the composer voice button and the WhatsApp-style voice recording overlay panel |
-| `messages.css` | Styles for voice message bubbles, voice-soundwave icon, 16-bar voiceprint waveform, and unplayed red dots |
+| `messages.css` | Styles for voice message bubbles, voice-soundwave icon, 16-bar voiceprint waveform, unplayed red dots, message pin button, and floating pinned message card |
 | `wechat-voice.svg` | New: Voice toggle icon for composer input bar (horizontal radiating waves in circle) |
 | `unlock.svg` | New: Unlock icon matching Campfire lock.svg solid fill style with shackle unfolding outward to the right and centered keyhole |
+| `pin.svg` | New: Pushpin icon for message actions menu |
+| `pin-off.svg` | New: Unpin icon for pinned message removal |
+
 

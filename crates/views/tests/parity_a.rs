@@ -121,6 +121,7 @@ fn accounts_edit() {
                 administrators,
                 members,
                 next_page: (name == "account_edit_paginated").then(|| "2".to_string()),
+                allow_invites: account_fact(name, "allow_invites").as_bool().unwrap_or(true),
             }
             .render()
             .unwrap()

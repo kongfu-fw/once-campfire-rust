@@ -353,9 +353,14 @@ pub(crate) async fn update_message(c: &Ctx, message: Message, attributes: Messag
 
 /// `@message.destroy` then `@message.broadcast_remove`.
 pub(crate) async fn destroy_message(c: &Ctx, room: &Room, message: &Message) -> Result<()> {
+    let message_id = message.id;
+    let was_pinned = c.app().read(move |conn| campfire_db::PinnedMessage::is_pinned(conn, message_id)).await.unwrap_or(false);
     let destroyed = message.clone();
     c.app().write(move |tx| destroyed.destroy(tx)).await?;
     c.app().broadcasts.message_remove(room, message);
+    if was_pinned {
+        c.app().broadcasts.pinned_message_remove(room);
+    }
     Ok(())
 }
 
@@ -393,6 +398,21 @@ pub(crate) async fn broadcast_replace(c: &Ctx, room: &Room, message: &Message) -
             .map_err(campfire_db::Error::other)?;
             let partials = Rendered { message_presentation: Some(html), ..Rendered::default() };
             app.broadcasts.message_replace(&room, &message, &partials);
+
+            // --- Fork Extension: Pinned Messages ---
+            if room.room_type != campfire_db::RoomType::Direct
+                && let Ok(Some(pinned)) = campfire_db::PinnedMessage::find_for_room(conn, room.id)
+                && pinned.message_id == message.id
+            {
+                if let Ok(Some(pinned_view)) = crate::controllers::rooms::pins::build_pinned_view(conn, &app, None, &pinned) {
+                    if let Ok(pinned_html) = page::render_detached_at(&app, account.as_ref(), &base_url, |ctx| {
+                        campfire_views::rooms::PinnedMessagePartial { ctx, pinned: Some(&pinned_view), room_id: room.id }.render()
+                    }) {
+                        app.broadcasts.pinned_message_update(&room, &pinned_html);
+                    }
+                }
+            }
+
             Ok(())
         })
         .await

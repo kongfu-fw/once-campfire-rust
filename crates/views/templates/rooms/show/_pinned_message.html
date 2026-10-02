@@ -1,0 +1,38 @@
+<div id="room_pinned_message" class="pinned-message-container" data-room-id="{{ room_id }}">
+{%- if let Some(pinned) = pinned %}
+  <details class="pinned-message-card shadow" data-controller="toggle-class" data-toggle-class-toggle-class="is-open">
+    <summary class="pinned-message-bar" title="点击展开/收起置顶消息">
+      <div class="pinned-message-bar-left">
+        <span class="pinned-message-badge" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pin"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+        </span>
+        <span class="pinned-message-summary txt-small overflow-ellipsis">
+          {%- if let Some(emoji) = &pinned.summary_emoji %}
+            <span class="pinned-emoji">{{ emoji }}</span>
+          {%- else %}
+            <span class="pinned-text">{{ pinned.summary_text }}</span>
+          {%- endif %}
+        </span>
+      </div>
+      <div class="pinned-message-toggle-icon" aria-hidden="true">
+        <img class="colorize--black chevron-icon" src="{{ ctx.asset("arrow-down.svg") }}" width="14" height="14" alt="" />
+      </div>
+    </summary>
+
+    <div class="pinned-message-expanded border-top">
+      <div class="pinned-message-content pad-block-half">
+        {{ crate::messages::presentation::message_presentation(ctx, &pinned.message)|safe }}
+      </div>
+      <div class="pinned-message-meta flex justify-space-between align-center border-top txt-micro txt-subtle">
+        <span class="pinned-message-meta-info">{{ pinned.pinned_by_name }}</span>
+        <form class="pinned-message-unpin-form" action="{{ campfire_routes::room_pin(pinned.room_id) }}" method="post" data-turbo="true">
+          <input type="hidden" name="_method" value="delete" />
+          <button type="submit" class="btn btn--borderless pinned-message-unpin-btn" title="取消置顶" aria-label="取消置顶">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pin-off"><path d="M12 17v5"/><path d="M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89"/><path d="m2 2 20 20"/><path d="M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11"/></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </details>
+{%- endif %}
+</div>

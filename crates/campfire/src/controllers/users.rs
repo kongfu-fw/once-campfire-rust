@@ -36,7 +36,9 @@ pub async fn create(c: &mut Ctx) -> Result {
     let email_address = params.get("email_address").and_then(|p| p.to_s()).map(|e| e.trim().to_lowercase());
     if let Some(ref email) = email_address {
         if !campfire_db::validate_username(email) {
-            return Err(Error::BadRequest("Username must be 1-64 alphanumeric characters (letters, numbers, _, -) or a valid email".into()));
+            return Err(Error::BadRequest(
+                "Username must be 1-64 alphanumeric characters (letters, numbers, _, -) or a valid email".into(),
+            ));
         }
     }
     let attributes = NewUser {

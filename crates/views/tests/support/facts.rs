@@ -83,7 +83,7 @@ pub fn with_context<R>(name: &str, request: Request, f: impl FnOnce(&ViewContext
     let case = case(name);
     let assets: HashMap<String, String> =
         facts["assets"].as_object().unwrap().iter().map(|(k, v)| (k.clone(), v.as_str().unwrap().to_string())).collect();
-    let asset_path = move |logical: &str| assets.get(logical).cloned().unwrap_or_else(|| panic!("unknown asset {logical}"));
+    let asset_path = move |logical: &str| assets.get(logical).cloned().unwrap_or_else(|| format!("/assets/{logical}"));
 
     let current = str_of(&case["as"]).map(|email| user_by_email(name, &email));
     let current_user = current.map(|user| CurrentUser {

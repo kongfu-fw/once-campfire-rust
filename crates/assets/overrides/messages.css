@@ -383,6 +383,16 @@ img.message__attachment {
   }
 }
 
+.message__pin-btn {
+  display: none;
+  margin: 0;
+  padding: 0;
+
+  .admin & {
+    display: inline-flex;
+  }
+}
+
 .message__options-btn {
   @media (hover: hover) and (pointer: fine) {
     opacity: 0;
@@ -753,5 +763,207 @@ img.message__attachment {
 
   &.hidden {
     display: none !important;
+  }
+}
+
+/* --- Fork Extension: Pinned Messages --- */
+
+.pinned-message-container {
+  position: fixed;
+  top: calc(var(--block-space) * 2 + var(--btn-size, 40px));
+  inset-inline-start: 0;
+  inset-inline-end: var(--sidebar-width);
+  z-index: 4;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  padding-inline: var(--inline-space);
+  transition: all 0.2s ease-in-out;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.pinned-message-card {
+  pointer-events: auto;
+  inline-size: 100%;
+  max-inline-size: min(540px, 92vw);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 6px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: max-height 0.25s ease;
+
+  &[open] {
+    border-radius: 6px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.pinned-message-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  block-size: 32px;
+  min-block-size: 32px;
+  padding-inline: 10px;
+  background-color: #ffffff;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--color-bg) 85%, var(--color-selected));
+  }
+}
+
+.pinned-message-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.pinned-message-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 20px;
+  block-size: 20px;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 4px;
+  flex-shrink: 0;
+
+  svg {
+    display: block;
+  }
+}
+
+.pinned-message-summary {
+  font-size: var(--font-size-small, 13px);
+  font-weight: 500;
+  color: var(--color-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  .pinned-message-card[open] & {
+    display: none;
+  }
+}
+
+.pinned-emoji {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.pinned-message-toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-inline-start: 8px;
+
+  .chevron-icon {
+    transition: transform 0.2s ease;
+  }
+
+  .pinned-message-card[open] & .chevron-icon {
+    transform: rotate(180deg);
+  }
+}
+
+.pinned-message-expanded {
+  background: #ffffff;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.pinned-message-content {
+  padding-inline: 14px;
+  padding-block: 10px;
+  font-size: var(--font-size-medium, 14px);
+  line-height: 1.5;
+  color: var(--color-ink);
+  overflow-wrap: break-word;
+  word-break: break-word;
+
+  p {
+    margin-block: 0.25em;
+  }
+
+  img {
+    max-inline-size: 100%;
+    max-block-size: 280px;
+    object-fit: contain;
+    border-radius: 4px;
+    display: block;
+  }
+
+  video {
+    max-inline-size: 100%;
+    max-block-size: 280px;
+    border-radius: 4px;
+    display: block;
+  }
+
+  .voice-message-container {
+    max-inline-size: 100%;
+  }
+
+  .flex-inline {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.pinned-message-meta {
+  background-color: #ffffff;
+  padding-inline: 14px;
+  padding-block: 8px;
+}
+
+.pinned-message-meta-info {
+  margin-inline-start: 10px;
+  font-size: 12px;
+  color: var(--color-ink-subtle, #6b7280);
+}
+
+.pinned-message-unpin-form {
+  display: none;
+  margin: 0;
+
+  .admin & {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .pinned-message-unpin-btn {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 5px;
+    border-radius: 4px;
+    color: var(--color-ink-subtle, #6b7280);
+    transition: color 0.15s ease, background-color 0.15s ease;
+
+    svg {
+      display: block;
+    }
+
+    &:hover {
+      color: var(--color-negative, #e11d48);
+      background-color: color-mix(in srgb, var(--color-negative, #e11d48) 12%, transparent);
+    }
   }
 }
