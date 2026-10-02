@@ -102,8 +102,16 @@ fn initials_and_title() {
     assert_eq!(user(&t, "bender").initials(), "BB");
     jz.name = "Émile Zola".into();
     assert_eq!(jz.initials(), "Z", "Ruby's \\b sees É as a word character, \\w doesn't");
+    jz.name = "张三".into();
+    assert_eq!(jz.initials(), "张三");
+    jz.name = "测试1".into();
+    assert_eq!(jz.initials(), "测试");
+    jz.name = "李小龙".into();
+    assert_eq!(jz.initials(), "小龙");
+    jz.name = "老A".into();
+    assert_eq!(jz.initials(), "老A");
     jz.bio = Some("  ".into());
-    assert_eq!(jz.title(), "Émile Zola");
+    assert_eq!(jz.title(), "老A");
 }
 
 // User::Bot

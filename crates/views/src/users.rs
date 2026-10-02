@@ -91,6 +91,12 @@ pub struct AvatarSvg {
     pub initials: String,
 }
 
+impl AvatarSvg {
+    pub fn has_cjk(&self) -> bool {
+        self.initials.chars().any(|c| matches!(c, '\u{4E00}'..='\u{9FFF}' | '\u{3400}'..='\u{4DBF}'))
+    }
+}
+
 /// A membership row on the profile (`users/profiles/_membership`).
 #[derive(Clone, Debug)]
 pub struct ProfileMembership {

@@ -26,6 +26,22 @@ pub fn avatar_background_color(user_id: impl std::borrow::Borrow<i64>) -> &'stat
 /// `User#initials`: `name.scan(/\b\w/).join`. Ruby's `\w` is ASCII-only while `\b` sees
 /// Unicode word characters, so "Élodie" contributes nothing.
 pub fn initials(name: &str) -> String {
+    let is_cjk = |c: char| matches!(c, '\u{4E00}'..='\u{9FFF}' | '\u{3400}'..='\u{4DBF}');
+    let cjk_chars: Vec<char> = name.chars().filter(|&c| is_cjk(c)).collect();
+    if !cjk_chars.is_empty() {
+        if cjk_chars.len() == 1 {
+            let chars: Vec<char> = name.chars().filter(|c| is_cjk(*c) || c.is_ascii_alphanumeric() || *c == '_').collect();
+            if chars.len() >= 2 {
+                return chars[..2].iter().collect();
+            }
+            return cjk_chars.into_iter().collect();
+        } else if cjk_chars.len() == 2 {
+            return cjk_chars.into_iter().collect();
+        } else {
+            return cjk_chars[cjk_chars.len() - 2..].iter().collect();
+        }
+    }
+
     let is_word = |c: char| c.is_alphanumeric() || c == '_';
     let mut previous: Option<char> = None;
     let mut out = String::new();
@@ -146,6 +162,10 @@ mod tests {
     fn computes_initials_like_ruby() {
         assert_eq!(initials("Élodie Ünal-Smith o'Brien 3po _x ñ"), "SoB3_");
         assert_eq!(initials("David Heinemeier Hansson"), "DHH");
+        assert_eq!(initials("张三"), "张三");
+        assert_eq!(initials("测试1"), "测试");
+        assert_eq!(initials("李小龙"), "小龙");
+        assert_eq!(initials("老A"), "老A");
     }
 
     #[test]

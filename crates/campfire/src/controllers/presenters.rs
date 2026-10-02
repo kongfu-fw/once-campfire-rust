@@ -294,7 +294,13 @@ impl<'a> Presenter<'a> {
         let blob = campfire_storage::Blob::attached(self.conn, "Message", message.id, "attachment").map_err(storage_error)?;
         let Some(blob) = blob else { return Ok(None) };
         let verifier = &self.storage.verifier;
-        let preview = if blob.is_previewable() || blob.is_variable() {
+        let filename_str = blob.filename.to_string();
+        let is_voice = blob.is_audio() && filename_str.starts_with("voice-message");
+        let preview = if is_voice {
+            let duration = parse_voice_duration(&filename_str)
+                .or_else(|| blob.metadata.get("duration").and_then(campfire_storage::Json::as_f64));
+            AttachmentPreview::VoiceMessage { duration }
+        } else if blob.is_previewable() || blob.is_variable() {
             if blob.is_video() {
                 // `attachment.preview(format: :webp, resize_to_limit: [...])`
                 let poster = Variation::new(vec![
@@ -321,6 +327,7 @@ impl<'a> Presenter<'a> {
             preview,
             width: dimension(&blob, "width"),
             height: dimension(&blob, "height"),
+            message_id: Some(message.id),
         }))
     }
 
@@ -445,6 +452,13 @@ pub fn user_summary(secrets: &Secrets, user: &User) -> campfire_views::users::Us
 /// `to_fs(:epoch)` as a string (milliseconds).
 pub fn epoch_string(time: jiff::Timestamp) -> String {
     campfire_views::messages::support::epoch_ms(time).to_string()
+}
+
+/// Extracts duration from filenames formatted like `voice-message_12s.webm`.
+fn parse_voice_duration(filename: &str) -> Option<f64> {
+    let name = filename.strip_prefix("voice-message_")?;
+    let (secs_str, _) = name.split_once('s')?;
+    secs_str.parse::<f64>().ok()
 }
 
 /// `attachment.metadata[:width]`: an Integer for images, a Float for videos.

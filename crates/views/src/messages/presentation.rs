@@ -42,8 +42,53 @@ pub fn attachment_presentation(ctx: &ViewContext, attachment: &AttachmentView) -
     match &attachment.preview {
         AttachmentPreview::Video { poster_url } => video_preview(attachment, poster_url),
         AttachmentPreview::Image { thumb_url } => lightboxed_image_preview(attachment, thumb_url),
+        AttachmentPreview::VoiceMessage { duration } => voice_bubble(ctx, attachment, *duration),
         AttachmentPreview::File => file_link(ctx, attachment),
     }
+}
+
+fn voice_bubble(_ctx: &ViewContext, attachment: &AttachmentView, duration: Option<f64>) -> String {
+    let dur_secs = duration.unwrap_or(1.0).round().max(1.0).min(60.0) as i64;
+    let audio_url = escape(&attachment.blob_path);
+
+    format!(
+        concat!(
+            r#"<div class="voice-message-container flex align-center gap-half" data-controller="sound" data-sound-url-value="{audio_url}">"#,
+            r#"<button type="button" class="voice-bubble btn btn--plain" data-sound-target="bubble" data-action="click->sound#togglePlay" aria-label="播放语音消息">"#,
+            r#"<span class="voice-bubble__icon">"#,
+            r#"<svg class="voice-soundwave" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">"#,
+            r#"<path class="arc arc--1" d="M8 9a4 4 0 0 1 0 6"></path>"#,
+            r#"<path class="arc arc--2" d="M12 6a8 8 0 0 1 0 12"></path>"#,
+            r#"<path class="arc arc--3" d="M16 3a12 12 0 0 1 0 18"></path>"#,
+            r#"</svg>"#,
+            r#"</span>"#,
+            r#"<span class="voice-waveform flex align-center" aria-hidden="true">"#,
+            r#"<span class="voice-bar" style="--bar-h: 6px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 12px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 8px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 16px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 10px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 18px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 14px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 7px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 15px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 20px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 13px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 17px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 9px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 15px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 11px;"></span>"#,
+            r#"<span class="voice-bar" style="--bar-h: 7px;"></span>"#,
+            r#"</span>"#,
+            r#"<span class="voice-bubble__duration">{dur_secs}&quot;</span>"#,
+            r#"</button>"#,
+            r#"<span class="voice-bubble__unread-dot" data-sound-target="unreadDot"></span>"#,
+            r#"<audio preload="none" src="{audio_url}" data-sound-target="audio" data-action="ended->sound#onEnded play->sound#onPlay pause->sound#onPause"></audio>"#,
+            r#"</div>"#
+        ),
+        audio_url = audio_url,
+        dur_secs = dur_secs,
+    )
 }
 
 fn video_preview(attachment: &AttachmentView, poster_url: &str) -> String {

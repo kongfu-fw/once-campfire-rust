@@ -100,6 +100,27 @@ pub async fn create_user(c: &mut Ctx) -> Result {
     }
 
     let normalized_username = email_address.to_lowercase();
+    let name_for_check = name.clone();
+    let normalized_for_check = normalized_username.clone();
+
+    let check_result = c
+        .app()
+        .read(move |conn| {
+            if User::find_active_by_name(conn, &name_for_check)?.is_some() {
+                return Ok(Some("已有同名成员，昵称不能与其他人相同"));
+            }
+            if User::find_by_email_address(conn, &normalized_for_check)?.is_some() {
+                return Ok(Some("该用户名已被使用，请更换其他用户名"));
+            }
+            Ok(None)
+        })
+        .await?;
+
+    if let Some(err_msg) = check_result {
+        c.flash().set_alert(err_msg);
+        return redirect_to_admin(c);
+    }
+
     let digest = concerns::password_digest(c, Some(password)).await?;
 
     let attributes = NewUser {
@@ -117,6 +138,7 @@ pub async fn create_user(c: &mut Ctx) -> Result {
         })
         .await?;
 
+    c.flash().set_notice("成员添加成功");
     redirect_to_admin(c)
 }
 

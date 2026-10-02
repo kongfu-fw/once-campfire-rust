@@ -458,6 +458,14 @@ Deliberate:
   (`data-copy-to-clipboard-url-value`), and the copy-to-clipboard controller (an override) makes it
   absolute against the page. The bot API's cached JSON, whose URLs must be absolute, is cached per
   base URL instead.
+- **Voice messages (WhatsApp-style recording interaction & voiceprint pill bubbles).** In the chat room composer,
+  the static bubble icon on the left is replaced with a centered voice message button (concentric horizontal waves inside a circle).
+  Clicking it activates a WhatsApp-style hands-free recording panel with a pulsing red recording indicator, real-time
+  animated waveform bars, live timer (up to 60s max), pause/preview, discard (trash can), and send controls.
+  Recorded voice messages are rendered as clean, neutral voice bubbles consisting of a 3-arc `voice-soundwave` animation icon,
+  a 16-bar `voice-waveform` (声纹图), and a duration label (e.g. `17"`). Voice messages omit download buttons, while standard
+  audio and video uploads retain full download buttons. Includes unplayed indicator red dots and automatic sequential
+  playback of subsequent unplayed voice messages in the room.
 - **Rich text drops `name` attributes.** Rails' default sanitizer allowlist keeps them, which lets
   a message clobber the page's DOM globals (`<img name="body">` shadows `document.body`). Nothing
   Campfire's composer writes has one.

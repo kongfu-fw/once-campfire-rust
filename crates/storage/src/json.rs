@@ -52,6 +52,14 @@ impl Json {
         }
     }
 
+    pub fn as_f64(&self) -> Option<f64> {
+        match self {
+            Json::Float(f) => Some(*f),
+            Json::Int(i) => Some(*i as f64),
+            _ => None,
+        }
+    }
+
     /// `Hash#[]=`: replaces an existing key in place, or appends a new one.
     pub fn set(&mut self, key: &str, value: Json) {
         if let Json::Object(entries) = self {

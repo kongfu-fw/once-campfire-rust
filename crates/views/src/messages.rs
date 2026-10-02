@@ -124,6 +124,8 @@ pub struct AttachmentView {
     /// `attachment.metadata[:width]`: an Integer for images, a Float for videos.
     pub width: Option<RubyNumber>,
     pub height: Option<RubyNumber>,
+    #[serde(default)]
+    pub message_id: Option<i64>,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -133,6 +135,8 @@ pub enum AttachmentPreview {
     Video { poster_url: String },
     /// Otherwise previewable or variable: `polymorphic_url(attachment.representation(:thumb), only_path: true)`.
     Image { thumb_url: String },
+    /// A recorded voice message: rendered as a WeChat-style voice bubble.
+    VoiceMessage { duration: Option<f64> },
     /// Neither previewable nor variable: a download link.
     File,
 }
