@@ -166,6 +166,15 @@ impl User {
         query_one(conn, r#"SELECT * FROM "users" WHERE "users"."email_address" = ? LIMIT 1"#, [email_address], Self::from_row)
     }
 
+    pub fn find_active_by_name(conn: &Connection, name: &str) -> Result<Option<Self>> {
+        query_one(
+            conn,
+            r#"SELECT * FROM "users" WHERE "users"."status" = 0 AND LOWER("users"."name") = LOWER(?) LIMIT 1"#,
+            [name],
+            Self::from_row,
+        )
+    }
+
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
         query_all(conn, r#"SELECT * FROM "users""#, [], Self::from_row)
     }
@@ -483,6 +492,22 @@ impl User {
     /// `name.scan(/\b\w/).join`. Ruby's `\w` is ASCII-only, but `\b` treats any Unicode
     /// letter or digit as a word character, so "Émile" contributes nothing.
     pub fn initials(&self) -> String {
+        let is_cjk = |c: char| matches!(c, '\u{4E00}'..='\u{9FFF}' | '\u{3400}'..='\u{4DBF}');
+        let cjk_chars: Vec<char> = self.name.chars().filter(|&c| is_cjk(c)).collect();
+        if !cjk_chars.is_empty() {
+            if cjk_chars.len() == 1 {
+                let chars: Vec<char> = self.name.chars().filter(|c| is_cjk(*c) || c.is_ascii_alphanumeric() || *c == '_').collect();
+                if chars.len() >= 2 {
+                    return chars[..2].iter().collect();
+                }
+                return cjk_chars.into_iter().collect();
+            } else if cjk_chars.len() == 2 {
+                return cjk_chars.into_iter().collect();
+            } else {
+                return cjk_chars[cjk_chars.len() - 2..].iter().collect();
+            }
+        }
+
         let mut initials = String::new();
         let mut previous: Option<char> = None;
         for c in self.name.chars() {

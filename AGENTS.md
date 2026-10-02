@@ -77,3 +77,72 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for full development notes.
 - **Line endings**: keep `core.autocrlf=false` in both repo and `reference/` so asset hashes remain accurate.
 - **Frontend changes**: place in `crates/assets/overrides/` and record in `crates/assets/OVERRIDES.md`. Do not edit `reference/`.
 - **Changelog**: document user-facing additions and changes in `CHANGELOG.md`.
+
+## ASD-STE100 Writing Rules
+
+ASD-STE100 (Simplified Technical English) is an international specification for technical documentation designed to maximize clarity, eliminate ambiguity, and make text easy to understand—especially for non-native English speakers and automated translation tools.
+
+### Core Principles
+- **Part 1 (Writing Rules)**: 9 rule sections governing grammar, syntax, and document structure.
+- **Part 2 (Dictionary)**: Controlled vocabulary where each approved word has one designated meaning and one approved part of speech.
+
+### Key Rules and Guidelines
+
+#### 1. Words and Vocabulary
+- **Use approved words only**: Rely on the STE dictionary or authorized Technical Names (TN) and Technical Verbs (TV).
+- **One word, one meaning, one part of speech**: Do not use words interchangeably across parts of speech (e.g., *close* is only a verb, never an adjective; use *shut* or *near* instead).
+- **No synonyms or colloquialisms**: Avoid jargon, slang, idioms, and figurative language.
+- **Standard affixes only**: Use only approved prefixes and suffixes from the specification.
+
+#### 2. Noun Clusters
+- **Limit noun clusters to maximum 3 nouns**: Do not string four or more nouns together.
+  - *Non-STE*: "engine oil pressure indicator switch bracket"
+  - *STE*: "bracket for the engine-oil pressure indicator switch"
+- Use hyphens between related modifying words to clarify relationships.
+
+#### 3. Verbs and Tenses
+- **Restricted tenses**:
+  - Simple Present (e.g., "The valve opens...")
+  - Simple Past (e.g., "The technician installed the pump.")
+  - Simple Future using *will* (e.g., "The indicator will flash.")
+  - Imperative (for commands) (e.g., "Remove the cover.")
+- **Avoid continuous/progressive forms**: Do not use *-ing* verb forms (gerunds/present participles) unless explicitly authorized as technical names or adjectives.
+- **Strict modal auxiliary usage**: Use *can* for capability; avoid *may*, *might*, *could*, *should*, and *would*. Use *must* only for mandatory requirements when an imperative cannot be used.
+- **Active voice**: Use active voice primarily. Reserve passive voice for descriptive explanations where the actor is unknown or unimportant.
+
+#### 4. Sentence Structure and Word Count Limits
+- **Procedural sentences (instructions)**: Maximum 20 words per sentence.
+- **Descriptive sentences (explanations)**: Maximum 25 words per sentence.
+- **One thought / one instruction per sentence**: Do not combine multiple actions into one sentence unless they happen at the same time or in immediate sequence.
+- **Paragraph length**: Maximum 6 sentences per paragraph in descriptive text. Never write multi-sentence paragraphs in procedural steps.
+
+#### 5. Procedural Writing
+- Start action steps with an imperative verb (e.g., "Loosen the screws.", "Open the valve.").
+- Use vertical numbered lists for chronological steps.
+- State conditions before the action: "When the LED turns green, press the button." (not: "Press the button when the LED turns green.").
+
+#### 6. Descriptive Writing
+- Keep descriptions functional, direct, and factual.
+- Clearly separate descriptive explanations from procedural instructions.
+- Provide high-level context before introducing low-level details.
+
+#### 7. Safety Messages (Warnings, Cautions, and Notes)
+- Place warnings and cautions **before** the related procedural action, never after.
+- Include three essential elements:
+  1. The specific hazard.
+  2. The consequence of ignoring it (injury, equipment damage).
+  3. The action required to avoid it.
+- Follow standardized alert levels:
+  - **WARNING**: Risk of injury or loss of life.
+  - **CAUTION**: Risk of damage to equipment, software, or data.
+  - **NOTE**: Clarifying or non-safety contextual guidance.
+
+#### 8. Punctuation and Formatting
+- Keep punctuation simple: periods, commas, colons, hyphens, and parentheses.
+- Do not use semicolons (`;`) or exclamation points (`!`).
+- Use vertical bulleted or tabular lists for complex conditions, options, or parameters.
+
+#### 9. Precision and Measurable Values
+- Avoid vague qualifiers such as *properly*, *carefully*, *sufficiently*, *frequently*, *as required*, or *approximately*.
+- Provide concrete values, tolerances, and explicit thresholds (e.g., "Torque the bolt to 25 N·m", not "Tighten the bolt firmly").
+

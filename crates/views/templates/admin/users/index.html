@@ -8,36 +8,47 @@
 {% endblock %}
 
 {% block content %}
-<section class="panel panel--wide flex flex-column position-relative" style="max-width: 860px; margin: 0 auto; width: 100%;">
-  <div class="flex align-center justify-between gap pad-block-half" style="border-bottom: 2px solid var(--border-color, #e5e7eb);">
-    <div class="flex align-center gap">
-      {{ h::image_tag(ctx, "everyone.svg", h::attrs().size(28).aria_hidden().class("colorize--black")) }}
-      <h1 class="margin-none txt-x-large">人员与邀请管理</h1>
-    </div>
-    <span class="txt-small txt-subtle">共 {{ users.len() }} 位成员</span>
+<section class="panel panel--wide flex flex-column position-relative" style="max-width: 860px; margin: 0 auto; width: 100%; padding-block-start: calc(var(--navbar-height, 3.5rem) + 0.75rem);">
+  <!-- 标题居中，顶部留出返回按钮高度空白 -->
+  <div class="flex align-center justify-center position-relative pad-block" style="border-bottom: 2px solid var(--border-color, #e5e7eb);">
+    <h1 class="margin-none txt-x-large txt-align-center">人员</h1>
   </div>
+
+  <!-- 提示与错误横幅 -->
+  {% if let Some(alert) = ctx.flash_alert %}
+    <div class="pad margin-block fill-white border-radius txt-small" style="border: 1px solid #f87171; background-color: #fef2f2; color: #b91c1c; font-weight: 500;">
+      ⚠️ {{ alert }}
+    </div>
+  {% endif %}
+  {% if let Some(notice) = ctx.flash_notice %}
+    <div class="pad margin-block fill-white border-radius txt-small" style="border: 1px solid #86efac; background-color: #f0fdf4; color: #166534; font-weight: 500;">
+      ✓ {{ notice }}
+    </div>
+  {% endif %}
 
   <!-- 1. 邀请链接设置卡片 -->
   <div class="margin-block pad fill-shade border-radius flex flex-column gap">
-    <div class="flex align-center justify-between gap">
-      <div class="flex align-center gap">
-        {{ h::image_tag(ctx, "person-add.svg", h::attrs().size(22).aria_hidden().class("colorize--black")) }}
-        <strong class="txt-medium">邀请链接状态</strong>
-      </div>
-      <div>
-        {% let toggle_form = h::form_with(h::routes::admin_toggle_invites()).method("post") %}
-        {% filter form_with(toggle_form) %}
-          {% if allow_invites %}
-            <button type="submit" class="btn btn--negative txt-small" data-turbo-confirm="确定要关闭邀请链接吗？关闭后新用户将无法通过链接注册。">
-              关闭邀请链接
-            </button>
-          {% else %}
-            <button type="submit" class="btn btn--reversed txt-small">
-              开启邀请链接
-            </button>
-          {% endif %}
-        {% endfilter %}
-      </div>
+    <div class="flex align-center gap invite-switch-row" style="align-items: center;">
+      <style>
+        .invite-switch-row form {
+          display: inline-flex !important;
+          align-items: center !important;
+          margin: 0 !important;
+        }
+      </style>
+      {{ h::image_tag(ctx, "person-add.svg", h::attrs().size(20).aria_hidden().class("colorize--black flex-item-no-shrink").style("display: block; vertical-align: middle;")) }}
+      <strong class="txt-medium" style="display: flex; align-items: center; line-height: 1; margin: 0;">邀请链接</strong>
+      {% let toggle_form = h::form_with(h::routes::admin_toggle_invites()).method("post").data("controller", "form").class("flex-inline align-center") %}
+      {% filter form_with(toggle_form) %}
+        <label class="switch" title="{% if allow_invites %}点击关闭邀请链接{% else %}点击开启邀请链接{% endif %}" style="margin: 0; display: inline-flex; align-items: center; vertical-align: middle;">
+          <input type="checkbox"
+                class="switch__input"
+                {% if allow_invites %}checked{% endif %}
+                data-action="change->form#submit">
+          <span class="switch__btn round"></span>
+          <span class="for-screen-reader">邀请链接</span>
+        </label>
+      {% endfilter %}
     </div>
 
     {% if allow_invites %}
@@ -47,20 +58,38 @@
           {{ h::image_tag(ctx, "link.svg", h::attrs().aria_hidden().size(20).class("colorize--black")) }}
           <input type="text" class="input" id="admin_invite_url" value="{{ url }}" readonly>
         </span>
-        <div class="flex align-center gap flex-wrap">
+        <!-- 分享链接下面的图标居中排列，大小严格一致 -->
+        <div class="flex align-center justify-center gap pad-block-half share-actions">
+          <style>
+            .share-actions .btn {
+              width: 36px !important;
+              height: 36px !important;
+              min-width: 36px !important;
+              min-height: 36px !important;
+              border-radius: 50% !important;
+              display: inline-grid !important;
+              place-items: center !important;
+              padding: 0 !important;
+              box-sizing: border-box !important;
+            }
+            .share-actions form.button_to {
+              display: inline-flex !important;
+              margin: 0 !important;
+            }
+          </style>
           {% filter button_to_copy_to_clipboard(url) %}
-            {{ h::image_tag(ctx, "copy-paste.svg", h::attrs().aria_hidden().size(18).class("colorize--black")) }}
-            <span class="txt-small">复制链接</span>
+            {{ h::image_tag(ctx, "copy-paste.svg", h::attrs().aria_hidden().size(20).class("colorize--black")) }}
+            <span class="for-screen-reader">复制链接</span>
           {% endfilter %}
 
           {% filter link_to_zoom_qr_code(url) %}
-            {{ h::image_tag(ctx, "qr-code.svg", h::attrs().aria_hidden().size(18).class("colorize--black")) }}
-            <span class="txt-small">二维码</span>
+            {{ h::image_tag(ctx, "qr-code.svg", h::attrs().aria_hidden().size(20).class("colorize--black")) }}
+            <span class="for-screen-reader">二维码</span>
           {% endfilter %}
 
-          {% filter button_to(h::routes::account_join_code(), h::attrs().class("btn btn--regenerate txt-small")) %}
-            {{ h::image_tag(ctx, "refresh.svg", h::attrs().aria_hidden().size(18).class("colorize--black")) }}
-            <span class="txt-small">刷新链接</span>
+          {% filter button_to(h::routes::account_join_code(), h::attrs().class("btn btn--regenerate").title("刷新链接")) %}
+            {{ h::image_tag(ctx, "refresh.svg", h::attrs().aria_hidden().size(20).class("colorize--black")) }}
+            <span class="for-screen-reader">刷新链接</span>
           {% endfilter %}
         </div>
       </div>
@@ -71,61 +100,60 @@
     {% endif %}
   </div>
 
-  <!-- 2. 添加新成员卡片 -->
+  <!-- 2. 添加新成员卡片（+ 按钮，无多余文案） -->
   <details class="margin-block pad fill-white border-radius" style="border: 1px solid var(--border-color, #e5e7eb);">
-    <summary class="btn btn--reversed txt-medium center-block" style="cursor: pointer; padding: 0.6em 1.5em; text-align: center;">
-      + 添加新成员
+    <summary class="btn btn--reversed" style="cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; padding: 0; margin-inline-end: auto;" title="添加新成员" aria-label="添加新成员">
+      {{ h::image_tag(ctx, "add.svg", h::attrs().size(16).aria_hidden().class("colorize--white").style("width: 16px; height: 16px;")) }}
+      <span class="for-screen-reader">添加新成员</span>
     </summary>
     <div class="pad-block-start">
       {% let create_form = h::form_with(h::routes::admin_users()).method("post").class("flex flex-column gap") %}
       {% filter form_with(create_form) %}
-        <div class="flex gap flex-wrap">
-          <label class="flex flex-column gap flex-item-grow" style="min-width: 200px; --row-gap: 0.3em;">
-            <strong class="txt-small">登录用户名（支持英文字符、数字、_、- 或邮箱）*</strong>
-            <input type="text" name="email_address" required autocomplete="off" placeholder="例如: jack_01 或 user@domain.com" class="input txt-medium">
-          </label>
-          <label class="flex flex-column gap flex-item-grow" style="min-width: 200px; --row-gap: 0.3em;">
-            <strong class="txt-small">显示昵称 / 姓名 *</strong>
-            <input type="text" name="name" required placeholder="例如: Jack" class="input txt-medium">
-          </label>
-        </div>
+        <label class="flex flex-column gap full-width" style="--row-gap: 0.3em;">
+          <strong class="txt-small">登录用户名（英文字符、数字、_、- 或邮箱）*</strong>
+          <input type="text" name="email_address" required autocomplete="off" placeholder="例如: jack_01" class="input txt-medium">
+        </label>
 
-        <div class="flex gap flex-wrap">
-          <label class="flex flex-column gap flex-item-grow" style="min-width: 200px; --row-gap: 0.3em;">
-            <strong class="txt-small">初始密码 *</strong>
-            <input type="password" name="password" required autocomplete="new-password" placeholder="设置初始密码" class="input txt-medium" maxlength="72">
-          </label>
-          <label class="flex flex-column gap flex-item-grow" style="min-width: 200px; --row-gap: 0.3em;">
-            <strong class="txt-small">权限角色</strong>
-            <select name="role" class="input txt-medium" style="height: 42px;">
-              <option value="member" selected>普通成员 (Member)</option>
-              <option value="administrator">管理员 (Administrator)</option>
-            </select>
+        <label class="flex flex-column gap full-width" style="--row-gap: 0.3em;">
+          <strong class="txt-small">显示昵称（不能与其他人相同）*</strong>
+          <input type="text" name="name" required placeholder="例如: Jack" class="input txt-medium">
+        </label>
+
+        <label class="flex flex-column gap full-width" style="--row-gap: 0.3em;">
+          <strong class="txt-small">初始密码 *</strong>
+          <input type="password" name="password" required autocomplete="new-password" placeholder="设置初始密码" class="input txt-medium" maxlength="72">
+        </label>
+
+        <!-- 权限角色：整行对齐，王冠按钮，交互与设置统一，点亮即管理员 -->
+        <div class="flex align-center justify-space-between gap pad-block-half full-width">
+          <div class="flex flex-column" style="--row-gap: 0.2em;">
+            <strong class="txt-small">管理员权限</strong>
+            <span class="txt-small txt-subtle">点亮王冠赋予该成员管理员权限</span>
+          </div>
+          <label class="btn txt-small flex-item-no-shrink" for="create_user_role" title="点击切换管理员权限" style="height: 42px; width: 42px; display: grid; place-items: center; border-radius: 50%; cursor: pointer; padding: 0;">
+            {{ h::image_tag(ctx, "crown.svg", h::attrs().size(20).aria_hidden()) }}
+            <input type="checkbox" name="role" value="administrator" id="create_user_role" hidden>
+            <span class="for-screen-reader">设为管理员</span>
           </label>
         </div>
 
         <div class="flex justify-end gap pad-block-half">
-          <button type="submit" class="btn btn--reversed txt-medium" style="min-width: 120px;">
-            保存并创建
+          <button type="submit" class="btn btn--reversed txt-medium">
+            保存
           </button>
         </div>
       {% endfilter %}
     </div>
   </details>
 
-  <!-- 3. 人员列表 -->
+  <!-- 3. 人员列表（无标题，直接展示列表） -->
   <div class="margin-block fill-shade border-radius pad">
-    <h2 class="txt-large margin-block-none pad-block-half" style="border-bottom: 1px solid var(--border-color, #e5e7eb);">
-      成员列表
-    </h2>
-
-    <div class="flex flex-column gap pad-block-start">
+    <div class="flex flex-column gap">
       {% for user in users %}
         <div class="flex align-center justify-between gap pad fill-white border-radius" style="border: 1px solid var(--border-color, #e5e7eb); flex-wrap: wrap;">
-          <!-- 用户基本信息与状态标签 -->
-          <div class="flex align-center gap flex-wrap" style="flex: 1 1 auto; min-width: 260px;">
-            <!-- 用户基本信息 -->
-            <div class="flex align-center gap" style="min-width: 200px;">
+          <!-- 用户基本信息 -->
+          <div class="flex align-center gap flex-wrap" style="flex: 1 1 auto; min-width: 220px;">
+            <div class="flex align-center gap" style="min-width: 180px;">
               <figure class="avatar flex-item-no-shrink" style="--avatar-size: 3.5ch; margin: 0;">
                 <img src="{{ user.avatar_url }}" alt="{{ user.name }}" class="avatar" loading="lazy" style="width: 3.5ch; height: 3.5ch; border-radius: 50%;">
               </figure>
@@ -140,74 +168,73 @@
               </div>
             </div>
 
-            <!-- 角色与状态标签 -->
+            <!-- 状态标签：仅当已锁定时显示“已锁定”tag，正常用户不显示tag -->
             <div class="flex align-center gap">
-              {% if user.is_admin %}
-                <span class="txt-small" style="background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: 0.75rem;">管理员</span>
-              {% else %}
-                <span class="txt-small" style="background: #f3f4f6; color: #4b5563; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">普通成员</span>
-              {% endif %}
-
               {% if user.is_banned %}
                 <span class="txt-small" style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: 0.75rem;">已锁定</span>
-              {% else %}
-                <span class="txt-small" style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">正常</span>
               {% endif %}
             </div>
           </div>
 
-          <!-- 操作按钮组 (从右向左对齐/右对齐) -->
-          <div class="flex align-center gap flex-wrap" style="margin-left: auto; justify-content: flex-end;">
-            <!-- 切换角色 -->
-            {% if !user.is_current_user %}
-              {% let role_form = h::form_with(h::routes::admin_user_role(user.id)).method("post") %}
+          <!-- 操作按钮组（纯 icon 形式） -->
+          <div class="flex align-center gap" style="margin-left: auto; justify-content: flex-end;">
+            <!-- 管理员王冠按钮：点亮即管理员，交互与设置统一 -->
+            {% if user.is_current_user %}
+              <label class="btn txt-small flex-item-no-shrink" title="当前管理员" style="cursor: default; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; padding: 0;">
+                {{ h::image_tag(ctx, "crown.svg", h::attrs().size(18).aria_hidden()) }}
+                <input type="checkbox" checked disabled hidden>
+                <span class="for-screen-reader">管理员</span>
+              </label>
+            {% else %}
+              {% let role_form = h::form_with(h::routes::admin_user_role(user.id)).method("post").data("controller", "form") %}
               {% filter form_with(role_form) %}
-                <input type="hidden" name="role" value="{% if user.is_admin %}member{% else %}administrator{% endif %}">
-                <button type="submit" class="btn txt-small" title="{% if user.is_admin %}降级为普通成员{% else %}设为管理员{% endif %}">
-                  {{ h::image_tag(ctx, "crown.svg", h::attrs().size(16).aria_hidden()) }}
-                  <span>{% if user.is_admin %}降为成员{% else %}设为管理{% endif %}</span>
-                </button>
+                <label class="btn txt-small flex-item-no-shrink" for="user_role_{{ user.id }}" title="{% if user.is_admin %}管理员 (点击取消管理员){% else %}设为管理员{% endif %}" style="cursor: pointer; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; padding: 0;">
+                  {{ h::image_tag(ctx, "crown.svg", h::attrs().size(18).aria_hidden()) }}
+                  <input type="hidden" name="role" value="member">
+                  <input type="checkbox" name="role" value="administrator" id="user_role_{{ user.id }}" {% if user.is_admin %}checked{% endif %} data-action="change->form#submit" hidden>
+                  <span class="for-screen-reader">{% if user.is_admin %}取消管理员{% else %}设为管理员{% endif %}</span>
+                </label>
               {% endfilter %}
             {% endif %}
 
-            <!-- 重置密码 (折叠表单) -->
+            <!-- 重置密码（纯钥匙 icon） -->
             <details class="position-relative" style="display: inline-block;">
-              <summary class="btn txt-small" style="cursor: pointer;">
+              <summary class="btn txt-small" style="cursor: pointer; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; padding: 0;" title="修改密码" aria-label="修改密码">
                 {{ h::image_tag(ctx, "key.svg", h::attrs().size(16).aria_hidden()) }}
-                <span>改密</span>
+                <span class="for-screen-reader">修改密码</span>
               </summary>
-              <div class="pad fill-white border-radius position-absolute" style="top: 100%; right: 0; z-index: 50; width: 220px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ddd;">
+              <div class="pad fill-white border-radius position-absolute shadow" style="top: 100%; right: 0; z-index: 50; width: 220px; border: 1px solid var(--border-color, #ddd);">
                 {% let reset_form = h::form_with(h::routes::admin_reset_password(user.id)).method("post").class("flex flex-column gap") %}
                 {% filter form_with(reset_form) %}
                   <strong class="txt-small">重置密码: {{ user.name }}</strong>
                   <input type="password" name="new_password" required placeholder="输入新密码" class="input txt-small" autocomplete="new-password">
                   <div class="flex justify-end gap">
-                    <button type="submit" class="btn btn--reversed txt-small">确认修改</button>
+                    <button type="submit" class="btn btn--reversed txt-small">保存</button>
                   </div>
                 {% endfilter %}
               </div>
             </details>
 
-            <!-- 锁定 / 解锁 -->
+            <!-- 锁定 / 解锁（纯锁 icon / 纯解锁 icon） -->
             {% if !user.is_current_user %}
               {% if user.is_banned %}
-                {% filter button_to(h::routes::admin_unlock_user(user.id), h::attrs().method("post").class("btn txt-small")) %}
-                  {{ h::image_tag(ctx, "check.svg", h::attrs().size(16).aria_hidden()) }}
-                  <span>解锁</span>
+                {% filter button_to(h::routes::admin_unlock_user(user.id), h::attrs().method("post").class("btn txt-small").title("解锁用户").style("width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; padding: 0;")) %}
+                  {{ h::image_tag(ctx, "unlock.svg", h::attrs().size(16).aria_hidden()) }}
+                  <span class="for-screen-reader">解锁用户</span>
                 {% endfilter %}
               {% else %}
-                {% filter button_to(h::routes::admin_lock_user(user.id), h::attrs().method("post").class("btn btn--negative txt-small").data("turbo_confirm", "确定要锁定该用户吗？锁定后将注销其所有登录状态并阻止登录，但保留其历史聊天消息。")) %}
+                {% filter button_to(h::routes::admin_lock_user(user.id), h::attrs().method("post").class("btn btn--negative txt-small").data("turbo_confirm", "确定要锁定该用户吗？锁定后将注销其所有登录状态并阻止登录。").title("锁定用户").style("width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; padding: 0;")) %}
                   {{ h::image_tag(ctx, "lock.svg", h::attrs().size(16).aria_hidden()) }}
-                  <span>锁定</span>
+                  <span class="for-screen-reader">锁定用户</span>
                 {% endfilter %}
               {% endif %}
             {% endif %}
 
-            <!-- 删除 (软停用) -->
+            <!-- 删除（纯删除 icon） -->
             {% if !user.is_current_user %}
-              {% filter button_to(h::routes::admin_delete_user(user.id), h::attrs().method("delete").class("btn btn--negative txt-small").data("turbo_confirm", "确定要删除该用户吗？此操作将停用该账号并从房间中移出，历史消息仍保留。")) %}
-                {{ h::image_tag(ctx, "minus.svg", h::attrs().size(16).aria_hidden()) }}
-                <span>删除</span>
+              {% filter button_to(h::routes::admin_delete_user(user.id), h::attrs().method("delete").class("btn btn--negative txt-small").data("turbo_confirm", "确定要删除该用户吗？此操作将停用该账号。").title("删除用户").style("width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; padding: 0;")) %}
+                {{ h::image_tag(ctx, "trash.svg", h::attrs().size(16).aria_hidden()) }}
+                <span class="for-screen-reader">删除用户</span>
               {% endfilter %}
             {% endif %}
           </div>

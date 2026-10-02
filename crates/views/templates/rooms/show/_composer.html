@@ -13,10 +13,13 @@
 
             <div class="flex composer__input input input--actor fill-white min-width" style="--input-border-radius: 1.3rem">
               <div class="flex align-end gap full-width">
-                <img aria-hidden="true" class="composer__input-hint colorize--black" style="view-transition-name: input-btn;" src="{{ ctx.asset("messages-outlined.svg") }}" width="22" height="22" />
+                <button type="button" class="btn btn--borderless txt-small flex-item-no-shrink composer__voice-btn" data-action="composer#startVoiceRecording" title="语音消息" aria-label="语音消息">
+                  <img aria-hidden="true" class="colorize--black" style="view-transition-name: input-btn;" src="{{ ctx.asset("wechat-voice.svg") }}" width="26" height="26" />
+                  <span class="for-screen-reader">语音消息</span>
+                </button>
 
                 <div class="flex flex-column flex-item-grow min-width gap">
-                  <lexxy-editor rows="1" class="input lexxy-content" style="order: -1" aria-multiline="true" aria-label="Write a message" permitted-attachment-types="application/vnd.campfire.mention application/vnd.actiontext.opengraph-embed" data-controller="unfurl" data-action="lexxy:change-&gt;typing-notifications#start keydown-&gt;composer#submitByKeyboard:capture lexxy:change-&gt;composer#saveDraft lexxy:insert-link-&gt;unfurl#unfurl" data-composer-target="text" data-direct-upload-url="{{ ctx.url("/rails/active_storage/direct_uploads") }}" data-blob-url-template="{{ ctx.url("/rails/active_storage/blobs/redirect/:signed_id/:filename") }}" id="message_body" input="message_body_trix_input_message" name="message[body]">
+                  <lexxy-editor rows="1" class="input lexxy-content" style="order: -1" aria-multiline="true" aria-label="Write a message" permitted-attachment-types="application/vnd.campfire.mention application/vnd.actiontext.opengraph-embed" data-controller="unfurl" data-action="lexxy:change->typing-notifications#start keydown->composer#submitByKeyboard:capture lexxy:change->composer#saveDraft lexxy:insert-link->unfurl#unfurl" data-composer-target="text" data-direct-upload-url="{{ ctx.url("/rails/active_storage/direct_uploads") }}" data-blob-url-template="{{ ctx.url("/rails/active_storage/blobs/redirect/:signed_id/:filename") }}" id="message_body" input="message_body_trix_input_message" name="message[body]">
                     <lexxy-prompt trigger="@" name="mention" src="{{ crate::rooms::mention_prompt_src(*room.id) }}" remote-filtering="true" empty-results="No matches"></lexxy-prompt>
 </lexxy-editor>                </div>
 
@@ -35,6 +38,50 @@
                   <img aria-hidden="true" src="{{ ctx.asset("arrow-up.svg") }}" width="20" height="20" />
                   <span class="for-screen-reader">Send Message</span>
 </button>              </div>
+
+              <!-- WhatsApp Style Voice Recording Overlay Panel -->
+              <div class="composer__voice-overlay hidden" data-composer-target="voiceOverlay" aria-hidden="true">
+                <button type="button" class="btn btn--borderless composer__voice-cancel-btn flex-item-no-shrink" data-action="composer#cancelVoiceRecording" title="取消录音" aria-label="取消录音">
+                  <img aria-hidden="true" src="{{ ctx.asset("trash.svg") }}" width="20" height="20" />
+                </button>
+
+                <div class="composer__voice-status flex align-center gap-half flex-item-no-shrink">
+                  <span class="composer__voice-rec-dot" data-composer-target="voiceRecDot"></span>
+                  <span class="composer__voice-timer" data-composer-target="voiceTimer">0:00</span>
+                </div>
+
+                <div class="composer__voice-wave flex align-center justify-center flex-item-grow" data-composer-target="voiceWave">
+                  <div class="voice-wave-bar"></div>
+                  <div class="voice-wave-bar"></div>
+                  <div class="voice-wave-bar"></div>
+                  <div class="voice-wave-bar"></div>
+                  <div class="voice-wave-bar"></div>
+                  <div class="voice-wave-bar"></div>
+                  <div class="voice-wave-bar"></div>
+                  <div class="voice-wave-bar"></div>
+                  <div class="voice-wave-bar"></div>
+                  <div class="voice-wave-bar"></div>
+                  <div class="voice-wave-bar"></div>
+                  <div class="voice-wave-bar"></div>
+                </div>
+
+                <audio class="hidden" data-composer-target="voicePreviewAudio"></audio>
+
+                <button type="button" class="btn btn--borderless flex-item-no-shrink composer__voice-pause-btn" data-composer-target="voicePauseBtn" data-action="composer#toggleVoicePause" title="暂停/试听" aria-label="暂停/试听">
+                  <svg class="composer__voice-icon-pause" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+                    <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+                  </svg>
+                  <svg class="composer__voice-icon-play hidden" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <polygon points="6,4 20,12 6,20"></polygon>
+                  </svg>
+                </button>
+
+                <button type="button" class="btn btn--reversed flex-item-no-shrink txt-small composer__voice-send-btn" data-action="composer#sendVoiceRecording" title="发送语音" aria-label="发送语音">
+                  <img aria-hidden="true" src="{{ ctx.asset("arrow-up.svg") }}" width="20" height="20" />
+                  <span class="for-screen-reader">发送语音</span>
+                </button>
+              </div>
             </div>
           </div>
         </fieldset>
