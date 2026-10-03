@@ -785,20 +785,41 @@ img.message__attachment {
   }
 }
 
+/* Hide pinned message bar and expanded window when mobile sidebar is open */
+body:has(#sidebar.open) .pinned-message-container,
+body:has(#sidebar.open) #room_pinned_message {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 .pinned-message-card {
   pointer-events: auto;
   inline-size: 100%;
   max-inline-size: min(540px, 92vw);
-  background: #ffffff;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: 6px !important;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: max-height 0.25s ease;
+  transition: max-height 0.25s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 
   &[open] {
     border-radius: 6px !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background-color: var(--color-message-bg);
+    color: var(--color-text);
+    border-color: var(--color-border-dark);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+
+    &[open] {
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65);
+    }
   }
 }
 
@@ -809,10 +830,12 @@ img.message__attachment {
   block-size: 32px;
   min-block-size: 32px;
   padding-inline: 10px;
-  background-color: #ffffff;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   cursor: pointer;
   user-select: none;
   list-style: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
 
   &::-webkit-details-marker {
     display: none;
@@ -820,6 +843,15 @@ img.message__attachment {
 
   &:hover {
     background-color: color-mix(in srgb, var(--color-bg) 85%, var(--color-selected));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background-color: var(--color-message-bg);
+    color: var(--color-text);
+
+    &:hover {
+      background-color: var(--color-border-dark);
+    }
   }
 }
 
@@ -837,27 +869,38 @@ img.message__attachment {
   justify-content: center;
   inline-size: 20px;
   block-size: 20px;
-  background-color: #ffffff;
-  color: #1a1a1a;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   border: 1px solid var(--color-border, #e5e7eb);
   border-radius: 4px;
   flex-shrink: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
   svg {
     display: block;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background-color: var(--color-border-dark);
+    color: var(--color-text);
+    border-color: var(--color-border-darker);
   }
 }
 
 .pinned-message-summary {
   font-size: var(--font-size-small, 13px);
   font-weight: 500;
-  color: var(--color-ink);
+  color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 
   .pinned-message-card[open] & {
     display: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    color: var(--color-text);
   }
 }
 
@@ -883,9 +926,16 @@ img.message__attachment {
 }
 
 .pinned-message-expanded {
-  background: #ffffff;
+  background-color: var(--color-bg);
+  border-top: 1px solid var(--color-border);
   max-height: 50vh;
   overflow-y: auto;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: var(--color-message-bg);
+    border-top-color: var(--color-border-dark);
+  }
 }
 
 .pinned-message-content {
@@ -893,7 +943,7 @@ img.message__attachment {
   padding-block: 10px;
   font-size: var(--font-size-medium, 14px);
   line-height: 1.5;
-  color: var(--color-ink);
+  color: var(--color-text);
   overflow-wrap: break-word;
   word-break: break-word;
 
@@ -924,18 +974,33 @@ img.message__attachment {
     display: flex;
     align-items: center;
   }
+
+  @media (prefers-color-scheme: dark) {
+    color: var(--color-text);
+  }
 }
 
 .pinned-message-meta {
-  background-color: #ffffff;
+  background-color: var(--color-bg);
+  border-top: 1px solid var(--color-border);
   padding-inline: 14px;
   padding-block: 8px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: var(--color-message-bg);
+    border-top-color: var(--color-border-dark);
+  }
 }
 
 .pinned-message-meta-info {
   margin-inline-start: 10px;
   font-size: 12px;
-  color: var(--color-ink-subtle, #6b7280);
+  color: var(--color-border-darker);
+
+  @media (prefers-color-scheme: dark) {
+    color: var(--color-border-darker);
+  }
 }
 
 .pinned-message-unpin-form {
@@ -954,7 +1019,7 @@ img.message__attachment {
     justify-content: center;
     padding: 3px 5px;
     border-radius: 4px;
-    color: var(--color-ink-subtle, #6b7280);
+    color: var(--color-border-darker);
     transition: color 0.15s ease, background-color 0.15s ease;
 
     svg {
@@ -964,6 +1029,15 @@ img.message__attachment {
     &:hover {
       color: var(--color-negative, #e11d48);
       background-color: color-mix(in srgb, var(--color-negative, #e11d48) 12%, transparent);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      color: var(--color-border-darker);
+
+      &:hover {
+        color: var(--color-negative, #e11d48);
+        background-color: color-mix(in srgb, var(--color-negative, #e11d48) 20%, transparent);
+      }
     }
   }
 }

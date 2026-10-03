@@ -38,6 +38,10 @@ This release adds pinned message support to public and closed chat rooms.
   All connected users see the pinned card update or disappear immediately.
   When a pinned message is edited or deleted, the pin card updates or removes automatically.
 
+- **Dark Mode and Mobile Sidebar Adaptations**:
+  The pinned card and popup automatically switch between light and dark modes following system preferences (`prefers-color-scheme`).
+  When the mobile sidebar (`#sidebar.open`) is opened via `.sidebar__toggle`, the pinned message container hides automatically to keep navigation clear.
+
 ---
 
 ## [2026-10-01] Voice Message Support

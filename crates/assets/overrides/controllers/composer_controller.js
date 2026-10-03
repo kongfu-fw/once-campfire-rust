@@ -32,10 +32,23 @@ export default class extends Controller {
     if (!this.#usingTouchDevice) {
       onNextEventLoopTick(() => this.textTarget.focus())
     }
+
+    this._onSidebarToggle = (event) => {
+      if (event.target.closest(".sidebar__toggle")) {
+        const openCard = document.querySelector(".pinned-message-card[open]")
+        if (openCard) {
+          openCard.removeAttribute("open")
+        }
+      }
+    }
+    document.addEventListener("click", this._onSidebarToggle)
   }
 
   disconnect() {
     this.#cleanupVoiceRecording()
+    if (this._onSidebarToggle) {
+      document.removeEventListener("click", this._onSidebarToggle)
+    }
   }
 
   saveDraft() {
