@@ -230,6 +230,7 @@ export default class extends Controller {
     this.#startVoiceTimer()
 
     if (this.hasVoiceOverlayTarget) {
+      this.voiceOverlayTarget.removeAttribute("inert")
       this.voiceOverlayTarget.classList.remove("hidden")
     }
 
@@ -291,7 +292,14 @@ export default class extends Controller {
   cancelVoiceRecording() {
     this.#cleanupVoiceRecording()
     if (this.hasVoiceOverlayTarget) {
+      if (this.voiceOverlayTarget.contains(document.activeElement)) {
+        document.activeElement.blur()
+      }
+      this.voiceOverlayTarget.setAttribute("inert", "")
       this.voiceOverlayTarget.classList.add("hidden")
+      if (!this.#usingTouchDevice && this.hasTextTarget) {
+        this.textTarget.focus()
+      }
     }
   }
 
