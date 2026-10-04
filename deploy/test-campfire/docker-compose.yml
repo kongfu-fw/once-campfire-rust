@@ -1,6 +1,6 @@
 services:
   test_campfire:
-    image: dogming/once-campfire:latest
+    image: dogming/once-campfire-rust:latest
     container_name: test_campfire
     restart: unless-stopped
     ports:
@@ -14,3 +14,4 @@ services:
 
 volumes:
   test_campfire_storage:
+    name: test-campfire_test_campfire_storage
