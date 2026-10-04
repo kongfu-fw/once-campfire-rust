@@ -33,12 +33,33 @@ export default class extends Controller {
       onNextEventLoopTick(() => this.textTarget.focus())
     }
 
+    const sidebar = document.getElementById("sidebar")
+    const updateSidebarState = () => {
+      const isOpen = sidebar?.classList.contains("open") ?? false
+      document.body.classList.toggle("sidebar-open", isOpen)
+      const pinnedContainer = document.getElementById("room_pinned_message")
+      if (pinnedContainer) {
+        if (isOpen) {
+          pinnedContainer.style.setProperty("display", "none", "important")
+          const openCard = pinnedContainer.querySelector(".pinned-message-card[open]")
+          if (openCard) {
+            openCard.removeAttribute("open")
+          }
+        } else {
+          pinnedContainer.style.removeProperty("display")
+        }
+      }
+    }
+
+    if (sidebar) {
+      this._sidebarObserver = new MutationObserver(updateSidebarState)
+      this._sidebarObserver.observe(sidebar, { attributes: true, attributeFilter: ["class"] })
+      updateSidebarState()
+    }
+
     this._onSidebarToggle = (event) => {
       if (event.target.closest(".sidebar__toggle")) {
-        const openCard = document.querySelector(".pinned-message-card[open]")
-        if (openCard) {
-          openCard.removeAttribute("open")
-        }
+        setTimeout(updateSidebarState, 0)
       }
     }
     document.addEventListener("click", this._onSidebarToggle)
@@ -46,8 +67,13 @@ export default class extends Controller {
 
   disconnect() {
     this.#cleanupVoiceRecording()
+    if (this._sidebarObserver) {
+      this._sidebarObserver.disconnect()
+      this._sidebarObserver = null
+    }
     if (this._onSidebarToggle) {
       document.removeEventListener("click", this._onSidebarToggle)
+      this._onSidebarToggle = null
     }
   }
 

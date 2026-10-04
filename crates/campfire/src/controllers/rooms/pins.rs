@@ -15,10 +15,10 @@ use crate::controllers::rooms::{Scope, set_room};
 pub async fn create(c: &mut Ctx) -> Result {
     before_actions(c, Before::default()).await?;
     let user = require_current_user(c)?.clone();
-    if !user.is_administrator() {
+    let room = set_room(c, Scope::WithoutDirects).await?;
+    if !user.can_administer(Some(room.creator_id), false) {
         return halt(concerns::head(StatusCode::FORBIDDEN));
     }
-    let room = set_room(c, Scope::WithoutDirects).await?;
     let message_id = c.param_str("message_id").and_then(integer_cast).ok_or_else(|| Error::BadRequest("message_id required".into()))?;
 
     let app = c.app().clone();
@@ -65,10 +65,10 @@ pub async fn create(c: &mut Ctx) -> Result {
 pub async fn destroy(c: &mut Ctx) -> Result {
     before_actions(c, Before::default()).await?;
     let user = require_current_user(c)?;
-    if !user.is_administrator() {
+    let room = set_room(c, Scope::WithoutDirects).await?;
+    if !user.can_administer(Some(room.creator_id), false) {
         return halt(concerns::head(StatusCode::FORBIDDEN));
     }
-    let room = set_room(c, Scope::WithoutDirects).await?;
     let room_id = room.id;
 
     c.app().write(move |tx| PinnedMessage::unpin(tx, room_id)).await?;

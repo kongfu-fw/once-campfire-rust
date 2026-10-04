@@ -4,6 +4,29 @@ This document records new features and version updates for the Campfire project.
 
 ---
 
+## [2026-10-04] Pinned Message Refinements
+
+### Description
+This update improves pinned messages, theme compatibility, and permission controls.
+
+### Key Capabilities
+- **Sidebar Integration**:
+  The pinned message banner hides automatically when the user opens the mobile sidebar (`#sidebar.open`).
+  A `MutationObserver` monitors sidebar status and sets the `sidebar-open` state.
+  When the user shuts the sidebar, the banner displays again immediately.
+
+- **Theme Synchronization**:
+  The pinned message card colors now follow the application light and dark themes accurately.
+  The card, bar, badge, and content use system color variables (`--color-bg`, `--color-text`, `--color-border`).
+  Shadows and borders dynamically adapt to system mode switches without hardcoded overrides.
+
+- **Permission and Chat Type Restriction**:
+  The pin action button is disabled and hidden in direct message (DM) chats.
+  Only administrators in group chats (open and closed rooms) can view the pin button.
+  Regular chat members cannot view the pin button.
+
+---
+
 ## [2026-10-02] Pinned Messages Support
 
 ### Description

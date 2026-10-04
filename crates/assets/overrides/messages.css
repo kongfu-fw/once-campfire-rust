@@ -384,13 +384,20 @@ img.message__attachment {
 }
 
 .message__pin-btn {
-  display: none;
+  display: none !important;
   margin: 0;
   padding: 0;
+}
 
-  .admin & {
-    display: inline-flex;
-  }
+/* Only administrators in group chats (Open or Closed rooms) have the pin button */
+.admin [id^="messages_rooms_open"] .message__pin-btn,
+.admin [id^="messages_rooms_closed"] .message__pin-btn {
+  display: inline-flex !important;
+}
+
+/* Never show pin button in direct message chats */
+[id^="messages_rooms_direct"] .message__pin-btn {
+  display: none !important;
 }
 
 .message__options-btn {
@@ -786,12 +793,18 @@ img.message__attachment {
 }
 
 /* Hide pinned message bar and expanded window when mobile sidebar is open */
+body.sidebar-open .pinned-message-container,
+body.sidebar-open #room_pinned_message,
 body:has(#sidebar.open) .pinned-message-container,
 body:has(#sidebar.open) #room_pinned_message {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
+}
+
+#sidebar.open {
+  z-index: 5 !important;
 }
 
 .pinned-message-card {
@@ -803,22 +816,34 @@ body:has(#sidebar.open) #room_pinned_message {
   border: 1px solid var(--color-border);
   border-radius: 6px !important;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 0 0 1px oklch(var(--lch-always-black) / 0.04),
+    0 .2em 1.6em -0.8em oklch(var(--lch-always-black) / 0.2),
+    0 .4em 2.4em -1em oklch(var(--lch-always-black) / 0.3);
   transition: max-height 0.25s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 
   &[open] {
     border-radius: 6px !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    box-shadow:
+      0 0 0 1px oklch(var(--lch-always-black) / 0.05),
+      0 .4em 2.4em -1em oklch(var(--lch-always-black) / 0.3),
+      0 .8em 1.2em -1.6em oklch(var(--lch-always-black) / 0.5);
   }
 
   @media (prefers-color-scheme: dark) {
-    background-color: var(--color-message-bg);
+    background-color: var(--color-bg);
     color: var(--color-text);
     border-color: var(--color-border-dark);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+    box-shadow:
+      0 0 0 1px oklch(var(--lch-always-black) / 0.42),
+      0 .2em 1.6em -0.8em oklch(var(--lch-always-black) / 0.6),
+      0 .4em 2.4em -1em oklch(var(--lch-always-black) / 0.7);
 
     &[open] {
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65);
+      box-shadow:
+        0 0 0 1px oklch(var(--lch-always-black) / 0.5),
+        0 .4em 2.4em -1em oklch(var(--lch-always-black) / 0.75),
+        0 .8em 1.2em -1.6em oklch(var(--lch-always-black) / 0.85);
     }
   }
 }
@@ -846,11 +871,11 @@ body:has(#sidebar.open) #room_pinned_message {
   }
 
   @media (prefers-color-scheme: dark) {
-    background-color: var(--color-message-bg);
+    background-color: var(--color-bg);
     color: var(--color-text);
 
     &:hover {
-      background-color: var(--color-border-dark);
+      background-color: color-mix(in srgb, var(--color-bg) 85%, var(--color-selected-dark));
     }
   }
 }
@@ -871,19 +896,20 @@ body:has(#sidebar.open) #room_pinned_message {
   block-size: 20px;
   background-color: var(--color-bg);
   color: var(--color-text);
-  border: 1px solid var(--color-border, #e5e7eb);
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   flex-shrink: 0;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
   svg {
     display: block;
+    stroke: currentColor;
   }
 
   @media (prefers-color-scheme: dark) {
-    background-color: var(--color-border-dark);
+    background-color: var(--color-bg);
     color: var(--color-text);
-    border-color: var(--color-border-darker);
+    border-color: var(--color-border-dark);
   }
 }
 
@@ -933,7 +959,7 @@ body:has(#sidebar.open) #room_pinned_message {
   transition: background-color 0.15s ease, border-color 0.15s ease;
 
   @media (prefers-color-scheme: dark) {
-    background-color: var(--color-message-bg);
+    background-color: var(--color-bg);
     border-top-color: var(--color-border-dark);
   }
 }
@@ -988,7 +1014,7 @@ body:has(#sidebar.open) #room_pinned_message {
   transition: background-color 0.15s ease, border-color 0.15s ease;
 
   @media (prefers-color-scheme: dark) {
-    background-color: var(--color-message-bg);
+    background-color: var(--color-bg);
     border-top-color: var(--color-border-dark);
   }
 }
@@ -1024,6 +1050,7 @@ body:has(#sidebar.open) #room_pinned_message {
 
     svg {
       display: block;
+      stroke: currentColor;
     }
 
     &:hover {

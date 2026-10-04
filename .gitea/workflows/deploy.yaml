@@ -12,12 +12,13 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Deploy container with Docker Compose
         run: |
           DEPLOY_DIR="${HOME}/test_campfire"
           mkdir -p "${DEPLOY_DIR}"
-          cp deploy/test-campfire/docker-compose.yml "${DEPLOY_DIR}/"
 
           # 如果未配置 .env，则实时生成 SECRET_KEY_BASE 和 VAPID 密钥对
           if [ ! -f "${DEPLOY_DIR}/.env" ] || ! grep -q "^SECRET_KEY_BASE=" "${DEPLOY_DIR}/.env" 2>/dev/null || [ -z "$(grep '^SECRET_KEY_BASE=' "${DEPLOY_DIR}/.env" | cut -d= -f2-)" ]; then
@@ -42,7 +43,11 @@ jobs:
             echo "Reusing existing ${DEPLOY_DIR}/.env"
           fi
 
-          cd "${DEPLOY_DIR}"
-          docker compose down
-          docker compose pull
-          docker compose up -d --remove-orphans
+          # 同步持久化环境配置与 compose 文件
+          cp "${DEPLOY_DIR}/.env" deploy/test-campfire/.env
+          cp deploy/test-campfire/docker-compose.yml "${DEPLOY_DIR}/"
+
+          # 本地编译镜像并启动容器，而不是从 Docker Hub 拉取镜像
+          docker compose -f deploy/test-campfire/docker-compose.yml build
+          docker compose -f deploy/test-campfire/docker-compose.yml down
+          docker compose -f deploy/test-campfire/docker-compose.yml up -d --remove-orphans
