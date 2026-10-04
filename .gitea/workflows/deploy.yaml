@@ -18,7 +18,30 @@ jobs:
           DEPLOY_DIR="${HOME}/test_campfire"
           mkdir -p "${DEPLOY_DIR}"
           cp deploy/test-campfire/docker-compose.yml "${DEPLOY_DIR}/"
-          cp deploy/test-campfire/.env "${DEPLOY_DIR}/"
+
+          # 如果未配置 .env，则实时生成 SECRET_KEY_BASE 和 VAPID 密钥对
+          if [ ! -f "${DEPLOY_DIR}/.env" ] || ! grep -q "^SECRET_KEY_BASE=" "${DEPLOY_DIR}/.env" 2>/dev/null || [ -z "$(grep '^SECRET_KEY_BASE=' "${DEPLOY_DIR}/.env" | cut -d= -f2-)" ]; then
+            echo "Generating new secrets for .env..."
+            SECRET_KEY_BASE=$(openssl rand -hex 64)
+
+            # 生成 P-256 EC 密钥对并转换为 base64url (RFC 8292)
+            openssl ecparam -name prime256v1 -genkey -noout -out /tmp/vapid.key 2>/dev/null
+            VAPID_PUBLIC_KEY=$(openssl ec -in /tmp/vapid.key -pubout -outform DER 2>/dev/null | tail -c 65 | openssl base64 -e | tr -d '\n' | tr '/+' '_-' | tr -d '=')
+            VAPID_PRIVATE_KEY=$(openssl ec -in /tmp/vapid.key -outform DER 2>/dev/null | tail -c +8 | head -c 32 | openssl base64 -e | tr -d '\n' | tr '/+' '_-' | tr -d '=')
+            rm -f /tmp/vapid.key
+
+            {
+              echo "# Campfire 环境变量配置 (自动生成)"
+              echo "SECRET_KEY_BASE=${SECRET_KEY_BASE}"
+              echo "DISABLE_SSL=true"
+              echo "VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}"
+              echo "VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}"
+            } > "${DEPLOY_DIR}/.env"
+            echo "Successfully generated ${DEPLOY_DIR}/.env"
+          else
+            echo "Reusing existing ${DEPLOY_DIR}/.env"
+          fi
+
           cd "${DEPLOY_DIR}"
           docker compose down
           docker compose pull

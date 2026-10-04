@@ -5,4 +5,9 @@ target/
 /parity/.native
 /.claude
 /.cargo-home
-/deploy/*
+.env
+.env.*
+deploy/**/.env
+deploy/**/.env.*
+!.env.example
+!deploy/**/.env.example
