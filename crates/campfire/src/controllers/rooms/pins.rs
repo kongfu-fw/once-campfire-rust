@@ -2,23 +2,21 @@
 
 use askama::Template;
 use campfire_db::{Message, PinnedMessage, Timestamp, User};
-use campfire_kit::{Ctx, Error, Result, StatusCode, halt};
+use campfire_kit::{Ctx, Error, Result, StatusCode};
 use ruby_compat::integer_cast;
 
 use crate::app::{App, AppCtx};
-use crate::concerns::{self, Before, before_actions, require_current_user};
+use crate::concerns::{Before, before_actions, require_current_user};
 use crate::controllers::presenters::Presenter;
 use crate::controllers::presenters::page;
-use crate::controllers::rooms::{Scope, set_room};
+use crate::controllers::rooms::{Scope, ensure_can_administer, set_room};
 
 /// POST /rooms/:room_id/pin
 pub async fn create(c: &mut Ctx) -> Result {
     before_actions(c, Before::default()).await?;
-    let user = require_current_user(c)?.clone();
     let room = set_room(c, Scope::WithoutDirects).await?;
-    if !user.can_administer(Some(room.creator_id), false) {
-        return halt(concerns::head(StatusCode::FORBIDDEN));
-    }
+    ensure_can_administer(c, &room)?;
+    let user_id = require_current_user(c)?.id;
     let message_id = c.param_str("message_id").and_then(integer_cast).ok_or_else(|| Error::BadRequest("message_id required".into()))?;
 
     let app = c.app().clone();
@@ -37,7 +35,7 @@ pub async fn create(c: &mut Ctx) -> Result {
 
     // 2. Persist the pin
     let now = c.clock().now();
-    let pinned_by_id = user.id;
+    let pinned_by_id = user_id;
     let room_id = room.id;
     let pinned = c.app().write(move |tx| PinnedMessage::pin(tx, room_id, message_id, pinned_by_id, Timestamp::from_jiff(now))).await?;
 
@@ -64,11 +62,8 @@ pub async fn create(c: &mut Ctx) -> Result {
 /// DELETE /rooms/:room_id/pin
 pub async fn destroy(c: &mut Ctx) -> Result {
     before_actions(c, Before::default()).await?;
-    let user = require_current_user(c)?;
     let room = set_room(c, Scope::WithoutDirects).await?;
-    if !user.can_administer(Some(room.creator_id), false) {
-        return halt(concerns::head(StatusCode::FORBIDDEN));
-    }
+    ensure_can_administer(c, &room)?;
     let room_id = room.id;
 
     c.app().write(move |tx| PinnedMessage::unpin(tx, room_id)).await?;
