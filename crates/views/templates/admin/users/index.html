@@ -146,11 +146,64 @@
     </div>
   </details>
 
-  <!-- 3. 人员列表（无标题，直接展示列表） -->
-  <div class="margin-block fill-shade border-radius pad">
-    <div class="flex flex-column gap">
+  <!-- 3. 人员列表（带昵称筛选搜索栏） -->
+  <div class="margin-block fill-shade border-radius pad flex flex-column gap">
+    <style>
+      #user_filter_input::-webkit-search-cancel-button,
+      #user_filter_input::-webkit-search-decoration {
+        -webkit-appearance: none;
+        display: none;
+      }
+      .user-item {
+        transition: opacity 0.15s ease, transform 0.15s ease;
+      }
+      .user-filter-bar {
+        gap: 0.75rem;
+      }
+      @media (max-width: 600px) {
+        .user-filter-bar {
+          flex-direction: column;
+          align-items: stretch !important;
+        }
+        .user-filter-bar .user-filter-count {
+          text-align: right;
+        }
+      }
+    </style>
+
+    <!-- 搜索筛选栏 -->
+    <div class="flex align-center justify-between gap flex-wrap user-filter-bar">
+      <span class="flex align-center gap input input--actor fill-white flex-item-grow" style="padding: 0.45em 0.85em; border: 1px solid var(--border-color, #e5e7eb); border-radius: 0.5em; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);">
+        {{ h::image_tag(ctx, "search.svg", h::attrs().size(18).aria_hidden().class("colorize--black flex-item-no-shrink")) }}
+        <input type="search"
+               id="user_filter_input"
+               class="input flex-item-grow"
+               placeholder="根据用户昵称筛选..."
+               {% if let Some(q) = query %}value="{{ q }}"{% endif %}
+               autocomplete="off"
+               spellcheck="false"
+               aria-label="根据用户昵称筛选"
+               style="font-size: 0.95rem;">
+        <button type="button"
+                id="user_filter_clear"
+                class="btn borderless fill-transparent unpad flex-item-no-shrink"
+                style="display: none; cursor: pointer; line-height: 1; padding: 2px;"
+                title="清空筛选"
+                aria-label="清空筛选">
+          {{ h::image_tag(ctx, "remove.svg", h::attrs().size(14).aria_hidden().class("colorize--black")) }}
+        </button>
+      </span>
+      <span id="user_filter_count" class="user-filter-count txt-small txt-subtle flex-item-no-shrink" style="font-weight: 500;">
+        共 {{ users.len() }} 位成员
+      </span>
+    </div>
+
+    <!-- 用户列表容器 -->
+    <div id="user_list_items" class="flex flex-column gap">
       {% for user in users %}
-        <div class="flex align-center justify-between gap pad fill-white border-radius" style="border: 1px solid var(--border-color, #e5e7eb); flex-wrap: wrap;">
+        <div class="user-item flex align-center justify-between gap pad fill-white border-radius"
+             data-nickname="{{ user.name }}"
+             style="border: 1px solid var(--border-color, #e5e7eb); flex-wrap: wrap;">
           <!-- 用户基本信息 -->
           <div class="flex align-center gap flex-wrap" style="flex: 1 1 auto; min-width: 220px;">
             <div class="flex align-center gap" style="min-width: 180px;">
@@ -240,7 +293,124 @@
           </div>
         </div>
       {% endfor %}
+
+      <!-- 无搜索结果提示 -->
+      <div id="user_filter_empty" class="pad-double txt-align-center fill-white border-radius" style="display: none; border: 1px dashed var(--border-color, #e5e7eb);">
+        <figure class="center margin-block-half">
+          {{ h::image_tag(ctx, "search.svg", h::attrs().size(32).aria_hidden().class("colorize--black translucent")) }}
+        </figure>
+        <div class="txt-medium margin-block-half" style="font-weight: 600;">未找到匹配成员</div>
+        <div class="txt-subtle txt-small margin-block-half">
+          未找到昵称包含“<strong id="user_filter_query_display"></strong>”的用户
+        </div>
+        <button type="button" id="user_filter_reset_btn" class="btn btn--faux txt-small margin-block-start-half" style="cursor: pointer;">
+          清除筛选
+        </button>
+      </div>
     </div>
   </div>
 </section>
+
+<script>
+  (function() {
+    function setupUserFilter() {
+      const input = document.getElementById("user_filter_input");
+      const clearBtn = document.getElementById("user_filter_clear");
+      const countEl = document.getElementById("user_filter_count");
+      const itemsContainer = document.getElementById("user_list_items");
+      const emptyEl = document.getElementById("user_filter_empty");
+      const queryDisplay = document.getElementById("user_filter_query_display");
+      const resetBtn = document.getElementById("user_filter_reset_btn");
+
+      if (!input || !itemsContainer) return;
+      if (input.dataset.filterBound === "true") return;
+      input.dataset.filterBound = "true";
+
+      const userItems = Array.from(itemsContainer.querySelectorAll(".user-item"));
+      const totalCount = userItems.length;
+
+      function performFilter() {
+        const query = (input.value || "").trim().toLowerCase();
+        let matchCount = 0;
+
+        userItems.forEach(item => {
+          const nickname = (item.dataset.nickname || "").toLowerCase();
+          const matches = !query || nickname.includes(query);
+          if (matches) {
+            item.style.display = "";
+            matchCount++;
+          } else {
+            item.style.display = "none";
+          }
+        });
+
+        if (clearBtn) {
+          clearBtn.style.display = input.value ? "inline-flex" : "none";
+        }
+
+        if (countEl) {
+          if (!query) {
+            countEl.textContent = `共 ${totalCount} 位成员`;
+          } else {
+            countEl.textContent = `匹配 ${matchCount} / ${totalCount} 位成员`;
+          }
+        }
+
+        if (emptyEl) {
+          if (query && matchCount === 0) {
+            emptyEl.style.display = "block";
+            if (queryDisplay) queryDisplay.textContent = input.value.trim();
+          } else {
+            emptyEl.style.display = "none";
+          }
+        }
+
+        try {
+          const url = new URL(window.location.href);
+          if (query) {
+            url.searchParams.set("q", input.value.trim());
+          } else {
+            url.searchParams.delete("q");
+          }
+          window.history.replaceState({}, "", url.toString());
+        } catch (_) {}
+      }
+
+      function clearSearch() {
+        input.value = "";
+        performFilter();
+        input.focus();
+      }
+
+      input.addEventListener("input", performFilter);
+      input.addEventListener("compositionend", performFilter);
+      input.addEventListener("keydown", (e) => {
+        if (e.isComposing) return;
+        if (e.key === "Escape") {
+          clearSearch();
+        }
+      });
+
+      if (clearBtn) {
+        clearBtn.addEventListener("click", clearSearch);
+      }
+      if (resetBtn) {
+        resetBtn.addEventListener("click", clearSearch);
+      }
+
+      performFilter();
+    }
+
+    if (!window._userFilterTurboInitialized) {
+      window._userFilterTurboInitialized = true;
+      document.addEventListener("turbo:load", setupUserFilter);
+    }
+
+    if (document.readyState !== "loading") {
+      setupUserFilter();
+    } else {
+      document.addEventListener("DOMContentLoaded", setupUserFilter);
+    }
+  })();
+</script>
 {% endblock %}

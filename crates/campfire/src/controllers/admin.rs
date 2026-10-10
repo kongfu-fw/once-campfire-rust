@@ -18,6 +18,7 @@ pub async fn index(c: &mut Ctx) -> Result {
 
     let me = concerns::require_current_user(c)?.clone();
     let secrets = c.app().secrets.clone();
+    let q = c.param_str("q").map(|s| s.trim().to_string()).filter(|s| !s.is_empty());
 
     let (join_code, allow_invites, users) = c
         .app()
@@ -50,7 +51,14 @@ pub async fn index(c: &mut Ctx) -> Result {
         })
         .collect();
 
-    framed_page!(c, StatusCode::OK, |ctx| UsersIndex { ctx, join_code: join_code.clone(), allow_invites, users: user_items.clone() }).await
+    framed_page!(c, StatusCode::OK, |ctx| UsersIndex {
+        ctx,
+        join_code: join_code.clone(),
+        allow_invites,
+        users: user_items.clone(),
+        query: q.clone(),
+    })
+    .await
 }
 
 /// `POST /admin/settings/invites`
@@ -245,5 +253,5 @@ fn target_user_id(c: &Ctx) -> Result<i64> {
 
 fn redirect_to_admin(c: &mut Ctx) -> Result {
     let location = c.url_for(&campfire_routes::admin_users());
-    c.redirect_to(&location)
+    c.redirect_back_or_to(&location)
 }

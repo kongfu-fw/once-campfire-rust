@@ -87,6 +87,32 @@
   # 停止并移除容器
   docker compose down
   ```
+- **WSL 与本机一键部署脚本 (`deploy.sh` / `deploy.ps1`)**：
+  - 本项目在脱离 Gitea CI/CD 时，可通过一键脚本直接部署至本机 Docker 环境：
+    - **WSL / Linux 环境**：
+      ```bash
+      # 一键自动检查环境、生成/复用持久化密钥、构建并启动容器 (端口 3002)
+      ./deploy.sh
+
+      # 查看实时日志
+      ./deploy.sh logs
+
+      # 停止/重启服务
+      ./deploy.sh down
+      ./deploy.sh restart
+
+      # 强制不使用缓存重新编译镜像
+      ./deploy.sh --rebuild
+      ```
+    - **Windows PowerShell 环境**：
+      ```powershell
+      .\deploy.ps1
+      .\deploy.ps1 logs
+      .\deploy.ps1 down
+      .\deploy.ps1 -Rebuild
+      ```
+  - **测试环境访问地址**：`http://localhost:3002`（容器名 `test_campfire`，卷 `test-campfire_test_campfire_storage`）。
+  - **持久化配置**：密钥会自动持久化至 `~/test_campfire/.env` 及 `deploy/test-campfire/.env`，即使多次重新部署也不会丢失既有登录状态与密钥。
 - **数据持久化存储**：
   - `compose.yaml` 中默认使用命名卷 `campfire_rust_storage`。
   - 若需要挂载旧版 Rails 遗留的数据卷，可在 `compose.yaml` 中将卷配置修改为：

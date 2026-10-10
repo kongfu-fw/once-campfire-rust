@@ -24,6 +24,7 @@ pub struct UsersIndex<'a> {
     pub join_code: String,
     pub allow_invites: bool,
     pub users: Vec<AdminUserItem>,
+    pub query: Option<String>,
 }
 
 impl Page for UsersIndex<'_> {

@@ -4,6 +4,30 @@ This document records new features and version updates for the Campfire project.
 
 ---
 
+## [2026-10-09] User Nickname Filter in User Management
+
+### Description
+This update adds a search filter box to the user management panel.
+Administrators can filter the user list by nickname in real time.
+
+### Key Capabilities
+- **Real-Time Nickname Filtering**:
+  The search input filters the member list instantly as the user types.
+  The search operation matches substrings in user nicknames without case sensitivity.
+  Input method editor (IME) composition events are supported for international text entry.
+
+- **Dynamic Count and Empty State**:
+  The counter displays the total count of members when the search input is empty.
+  When a search is active, the counter displays the number of matching members.
+  If no members match the filter, an empty state card provides a reset button.
+
+- **Interactive Controls**:
+  A clear button removes the query text and restores all user records.
+  Pressing the Escape key clears the search input when not in IME composition.
+  The search query synchronizes with the URL search parameters through browser history state.
+
+---
+
 ## [2026-10-04] Pinned Message Refinements
 
 ### Description
