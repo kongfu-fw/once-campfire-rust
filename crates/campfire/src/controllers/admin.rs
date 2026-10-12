@@ -180,12 +180,11 @@ pub async fn reset_password(c: &mut Ctx) -> Result {
     c.app()
         .write(move |tx| {
             let mut user = User::find(tx.conn(), target_id)?;
-            // Terminate existing sessions so old password cannot remain logged in
-            tx.conn().execute(r#"DELETE FROM "sessions" WHERE "sessions"."user_id" = ?"#, [target_id])?;
             user.reset_password(tx, digest)
         })
         .await?;
 
+    c.flash().set_notice("密码已成功重置，已强制注销该用户的所有登录状态");
     redirect_to_admin(c)
 }
 

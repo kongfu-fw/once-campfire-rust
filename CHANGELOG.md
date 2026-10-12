@@ -2,6 +2,26 @@
 
 This document records new features and version updates for the Campfire project.
 
+## [2026-10-12] Session Revocation and Offline Data Protection
+
+### Description
+This update improves session security after password changes and prevents message exposure on disconnected devices.
+
+### Key Capabilities
+- **Immediate Session Revocation**:
+  When an administrator resets a user password, the server revokes existing sessions and emits a disconnection event.
+  The Action Cable server closes active WebSocket connections without allowing reconnects.
+  The client redirects immediately to the sign-in page.
+
+- **Offline Message Protection**:
+  When the client detects network loss or heartbeat timeouts, it removes message elements from the DOM.
+  An offline safety card replaces the message view and warns the user about network disconnection.
+  The message input area locks automatically while offline.
+
+- **Re-Authentication on Reconnect**:
+  When the device reconnects to the network, the client verifies session validity before restoring messages.
+  If the password changed while the device was offline, the client deletes temporary data and opens the sign-in page.
+
 ---
 
 ## [2026-10-09] User Nickname Filter in User Management
