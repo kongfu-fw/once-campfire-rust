@@ -7,7 +7,7 @@ const OFFLINE_AFTER_DISCONNECTED_TIMEOUT = 5_000
 const REFRESH_AFTER_HIDDEN_TIMEOUT = 60_000
 
 export default class extends Controller {
-  static targets = [ "message" ]
+  static targets = ["message"]
   static values = { loadedAt: Number, url: String }
 
   #lastLoadedAt
@@ -138,7 +138,7 @@ export default class extends Controller {
         <div class="room-offline-card">
           <div class="room-offline-icon">⚠️</div>
           <div class="room-offline-title">网络连接已断开</div>
-          <div class="room-offline-desc">聊天记录已安全锁定。正在等待网络恢复...</div>
+          <div class="room-offline-desc">正在等待网络恢复...</div>
         </div>
       `
       this.element.appendChild(placeholder)
