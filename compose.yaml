@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         APP_VERSION: "0.1.0"
-        GIT_REVISION: "4419b5f"
+        GIT_REVISION: "dd3a5cd"
     image: dogming/once-campfire-rust:latest
     container_name: campfire_rust
     restart: unless-stopped
