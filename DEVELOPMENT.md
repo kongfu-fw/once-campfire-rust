@@ -87,12 +87,16 @@
   # 停止并移除容器
   docker compose down
   ```
-- **WSL 与本机一键部署脚本 (`deploy.sh` / `deploy.ps1`)**：
-  - 本项目在脱离 Gitea CI/CD 时，可通过一键脚本直接部署至本机 Docker 环境：
-    - **WSL / Linux 环境**：
+- **一键独立部署向导脚本 (`deploy.sh` / `deploy.ps1`)**：
+  - 脚本已重构为**完全自包含 (Self-Contained)**，用户无需克隆完整源码，在任意工作目录下通过单行 URL 即可交互式生成独立实例：
+    - **单行 URL 远程执行（Linux / WSL / 服务器）**：
       ```bash
-      # 一键自动检查环境、生成/复用持久化密钥、构建并启动容器 (端口 3002)
+      curl -fsSL https://raw.githubusercontent.com/kongfu-fw/once-campfire-rust/main/deploy.sh | bash
+      ```
+    - **本地目录执行**：
+      ```bash
       ./deploy.sh
+      ```
 
       # 查看实时日志
       ./deploy.sh logs
@@ -101,18 +105,16 @@
       ./deploy.sh down
       ./deploy.sh restart
 
-      # 强制不使用缓存重新编译镜像
-      ./deploy.sh --rebuild
-      ```
+    - **交互式向导核心特性**：
+      1. **服务名称冲突检测**：实时校验是否与机器上已存在的 Docker 容器名或数据卷冲突，冲突时给出警告并提示更换。
+      2. **数据卷隔离**：根据服务名称动态生成专属数据卷 `${SERVICE_NAME}_storage`，实现数据完全物理隔离。
+      3. **随机无冲突端口分配**：自动探测当前宿主机与 Docker 中未被占用的可用端口（默认推荐 3100~8999 随机端口），避免端口占用报错。
+      4. **自动化高强度密钥生成**：自动生成 `SECRET_KEY_BASE` 与符合 RFC 8292 规范的 P-256 EC VAPID WebPush 密钥对至 `.env`。
+      5. **即刻启动与日常管理**：生成完成后可直接拉取公共镜像 `dogming/once-campfire-rust:latest` 启动，并支持 `./deploy.sh [up|down|restart|logs|status]` 管理。
     - **Windows PowerShell 环境**：
       ```powershell
       .\deploy.ps1
-      .\deploy.ps1 logs
-      .\deploy.ps1 down
-      .\deploy.ps1 -Rebuild
       ```
-  - **测试环境访问地址**：`http://localhost:3002`（容器名 `test_campfire`，卷 `test-campfire_test_campfire_storage`）。
-  - **持久化配置**：密钥会自动持久化至 `~/test_campfire/.env` 及 `deploy/test-campfire/.env`，即使多次重新部署也不会丢失既有登录状态与密钥。
 - **数据持久化存储**：
   - `compose.yaml` 中默认使用命名卷 `campfire_rust_storage`。
   - 若需要挂载旧版 Rails 遗留的数据卷，可在 `compose.yaml` 中将卷配置修改为：

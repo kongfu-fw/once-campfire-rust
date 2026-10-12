@@ -2,6 +2,31 @@
 
 This document records new features and version updates for the Campfire project.
 
+## [2026-10-12] Standalone Deployment Script with Instance and Resource Isolation
+
+### Description
+This update replaces the previous deployment script with a self-contained installation tool. Users can download and execute this tool through a single command URL to deploy independent Campfire instances in any directory.
+
+### Key Capabilities
+- **Service Name Conflict Verification**:
+  The script prompts the user to specify a service name.
+  It checks the local Docker engine for existing containers and volumes with identical names.
+  If a conflict occurs, the script warns the user and requests a different name.
+
+- **Storage Isolation**:
+  The script allocates a dedicated Docker named volume for each instance.
+  This volume isolates user data and databases from all other services.
+
+- **Automated Port Selection**:
+  The script scans the host system and Docker networks to find an available port.
+  It assigns an unused port automatically to prevent port conflicts.
+
+- **Automatic Secret Generation**:
+  The script generates a 64-byte `SECRET_KEY_BASE` and a P-256 EC VAPID key pair.
+  It writes these secrets directly to the local `.env` file with restricted permissions.
+
+---
+
 ## [2026-10-12] Session Revocation and Offline Data Protection
 
 ### Description
