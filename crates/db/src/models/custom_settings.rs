@@ -55,8 +55,10 @@ impl User {
         self.update(tx, UserChanges { status: Some(Status::Active), ..Default::default() })
     }
 
-    /// Reset password digest.
+    /// Reset password digest and revoke existing sessions and connections.
     pub fn reset_password(&mut self, tx: &mut Tx<'_>, digest: PasswordDigest) -> Result<()> {
+        tx.emit_after_commit(crate::events::Event::DisconnectUser { user_id: self.id, reconnect: false });
+        tx.conn().execute_cached(r#"DELETE FROM "sessions" WHERE "sessions"."user_id" = ?"#, [self.id])?;
         self.update(tx, UserChanges { password_digest: Some(digest), ..Default::default() })
     }
 }

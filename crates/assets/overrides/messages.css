@@ -1068,3 +1068,60 @@ body:has(#sidebar.open) #room_pinned_message {
     }
   }
 }
+
+/* Offline Security Placeholder */
+#room-offline-security-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 300px;
+  inline-size: 100%;
+  margin: auto;
+  padding: var(--space-large, 2rem);
+  user-select: none;
+}
+
+.room-offline-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  max-inline-size: 380px;
+  padding: 2rem 1.5rem;
+  border-radius: 14px;
+  background-color: var(--color-surface, rgba(0, 0, 0, 0.04));
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.room-offline-icon {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.room-offline-title {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--color-text, #111);
+}
+
+.room-offline-desc {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary, #666);
+  line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .room-offline-card {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  .room-offline-title {
+    color: #f3f4f6;
+  }
+  .room-offline-desc {
+    color: #9ca3af;
+  }
+}

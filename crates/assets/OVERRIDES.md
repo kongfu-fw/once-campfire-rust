@@ -18,6 +18,7 @@ path.
 | `messages.css` | Styles for voice message bubbles, voice-soundwave icon, 16-bar voiceprint waveform, unplayed red dots, message pin button (group chat admins only, never in direct chats), and floating pinned message card with full system dark/light theme switching and mobile sidebar-toggle hiding |
 | `wechat-voice.svg` | New: Voice toggle icon for composer input bar (horizontal radiating waves in circle) |
 | `unlock.svg` | New: Unlock icon matching Campfire lock.svg solid fill style with shackle unfolding outward to the right and centered keyhole |
+| `controllers/refresh_room_controller.js` | Offline and revocation security: clears message DOM and displays security locking notice when offline or heartbeat lost; verifies session authenticity on reconnect before restoring messages; immediately redirects to `/session/new` when remote disconnect (`reconnect: false`) or unauthenticated response is received |
 | `pin.svg` | New: Pushpin icon for message actions menu |
 | `pin-off.svg` | New: Unpin icon for pinned message removal |
 
