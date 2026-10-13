@@ -7,7 +7,4 @@ target/
 /.cargo-home
 .env
 .env.*
-deploy/**/.env
-deploy/**/.env.*
 !.env.example
-!deploy/**/.env.example
